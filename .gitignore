@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.env
+.env.local
+
+# Database
+server/data/*.db
+
+# Build output
+client/dist/
+client/build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# ML Models
+ai-service/models/*.pkl
+ai-service/models/*.joblib
+
+# Executables & Binaries
+cloudflared.exe
+server/cloudflared.exe
+*.exe
+
+# Audio cache
+server/public/audio/*.wav
+*.wav
+
+# Misc
+.cache/
+coverage/

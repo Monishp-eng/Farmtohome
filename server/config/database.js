@@ -1,0 +1,277 @@
+const initSqlJs = require('sql.js');
+const path = require('path');
+const fs = require('fs');
+
+const dataDir = path.join(__dirname, '..', 'data');
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
+
+const dbPath = path.join(dataDir, 'marketplace.db');
+
+// Wrapper class to mimic better-sqlite3's synchronous API using sql.js
+class DatabaseWrapper {
+  constructor() {
+    this.db = null;
+    this.dbPath = dbPath;
+    this._ready = false;
+  }
+
+  async initialize() {
+    const SQL = await initSqlJs();
+    
+    // Load existing database or create new one
+    if (fs.existsSync(this.dbPath)) {
+      const buffer = fs.readFileSync(this.dbPath);
+      this.db = new SQL.Database(buffer);
+    } else {
+      this.db = new SQL.Database();
+    }
+    
+    // Enable WAL mode equivalent
+    this.db.run("PRAGMA journal_mode=WAL;");
+    
+    this._initSchema();
+    this._ready = true;
+    this._save();
+    console.log('Database initialized successfully at', this.dbPath);
+    return this;
+  }
+
+  _save() {
+    const data = this.db.export();
+    const buffer = Buffer.from(data);
+    fs.writeFileSync(this.dbPath, buffer);
+  }
+
+  _initSchema() {
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
+        role TEXT NOT NULL DEFAULT 'consumer' CHECK(role IN ('farmer','consumer','buyer','fpo','logistics','admin')),
+        phone TEXT,
+        location TEXT,
+        state TEXT,
+        latitude REAL,
+        longitude REAL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS products (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        farmer_id INTEGER REFERENCES users(id),
+        name TEXT NOT NULL,
+        category TEXT NOT NULL CHECK(category IN ('vegetables','fruits','grains','pulses','dairy','spices','oilseeds')),
+        description TEXT,
+        quantity_kg REAL NOT NULL,
+        price_per_kg REAL NOT NULL,
+        msp_price REAL,
+        quality_grade TEXT DEFAULT 'A' CHECK(quality_grade IN ('A','B','C')),
+        image_url TEXT,
+        is_organic INTEGER DEFAULT 0,
+        harvest_date TEXT,
+        expiry_date TEXT,
+        status TEXT DEFAULT 'available' CHECK(status IN ('available','sold','expired')),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS orders (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        buyer_id INTEGER REFERENCES users(id),
+        product_id INTEGER REFERENCES products(id),
+        farmer_id INTEGER REFERENCES users(id),
+        quantity_kg REAL NOT NULL,
+        total_price REAL NOT NULL,
+        platform_fee REAL DEFAULT 0,
+        farmer_earnings REAL NOT NULL,
+        status TEXT DEFAULT 'pending' CHECK(status IN ('pending','confirmed','dispatched','in_transit','delivered','cancelled')),
+        payment_status TEXT DEFAULT 'pending' CHECK(payment_status IN ('pending','paid','refunded')),
+        delivery_address TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS warehouses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        code TEXT UNIQUE NOT NULL,
+        city TEXT NOT NULL DEFAULT 'Chennai',
+        address TEXT NOT NULL,
+        latitude REAL NOT NULL,
+        longitude REAL NOT NULL,
+        capacity_tonnes REAL DEFAULT 50,
+        current_occupancy_kg REAL DEFAULT 0,
+        contact_phone TEXT DEFAULT '+91-44-2479-1100',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Seed default Chennai Hubs if empty
+    try {
+      const wCount = this.db.prepare('SELECT COUNT(*) as count FROM warehouses').get();
+      if (!wCount || wCount.count === 0) {
+        this.db.run(`
+          INSERT INTO warehouses (name, code, city, address, latitude, longitude, capacity_tonnes, current_occupancy_kg, contact_phone)
+          VALUES 
+          ('Chennai Central Agri-Hub', 'MAA-CENTRAL-01', 'Chennai', 'Koyambedu Wholesale Market Complex, Chennai, Tamil Nadu 600092', 13.0694, 80.1948, 100, 4500, '+91-44-2479-1100'),
+          ('Chennai South Cold-Chain Hub', 'MAA-SOUTH-02', 'Chennai', 'SIDCO Industrial Estate, Guindy, Chennai, Tamil Nadu 600032', 13.0067, 80.2025, 60, 2800, '+91-44-2250-2200'),
+          ('Chennai North Aggregation Hub', 'MAA-NORTH-03', 'Chennai', 'Madhavaram Logistics Park, Chennai, Tamil Nadu 600060', 13.1487, 80.2312, 80, 3100, '+91-44-2553-3300')
+        `);
+      }
+    } catch(e) {}
+
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS logistics (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        order_id INTEGER REFERENCES orders(id),
+        product_id INTEGER REFERENCES products(id),
+        stage TEXT DEFAULT 'farm_to_warehouse' CHECK(stage IN ('farm_to_warehouse','warehouse_to_consumer')),
+        warehouse_id INTEGER REFERENCES warehouses(id),
+        driver_id INTEGER REFERENCES users(id),
+        pickup_location TEXT,
+        pickup_lat REAL,
+        pickup_lng REAL,
+        delivery_location TEXT,
+        delivery_lat REAL,
+        delivery_lng REAL,
+        distance_km REAL,
+        estimated_time_hrs REAL,
+        optimized_route TEXT,
+        vehicle_type TEXT DEFAULT 'mini_truck',
+        status TEXT DEFAULT 'assigned' CHECK(status IN ('assigned','picked_up','in_transit','delivered')),
+        pickup_time DATETIME,
+        delivery_time DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS market_prices (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        commodity TEXT NOT NULL,
+        market_name TEXT,
+        state TEXT,
+        district TEXT,
+        min_price REAL,
+        max_price REAL,
+        modal_price REAL,
+        msp REAL,
+        unit TEXT DEFAULT 'per_quintal',
+        price_date TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS demand_forecasts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        product_category TEXT NOT NULL,
+        region TEXT,
+        predicted_demand_kg REAL,
+        confidence_score REAL,
+        forecast_date TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS cart_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER REFERENCES users(id),
+        product_id INTEGER REFERENCES products(id),
+        quantity_kg REAL NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+  }
+
+  // Mimic better-sqlite3's prepare() API
+  prepare(sql) {
+    const self = this;
+    const sanitize = (params) => params.map(p => (p === undefined ? null : p));
+    return {
+      run(...params) {
+        try {
+          const cleanParams = sanitize(params);
+          self.db.run(sql, cleanParams);
+          // Return info object similar to better-sqlite3
+          const res = self.db.exec("SELECT last_insert_rowid() as id");
+          const lastId = res && res[0] && res[0].values && res[0].values[0] ? res[0].values[0][0] : 0;
+          const changes = self.db.getRowsModified();
+          self._save();
+          return { lastInsertRowid: lastId, changes };
+        } catch (err) {
+          throw err;
+        }
+      },
+      get(...params) {
+        try {
+          const cleanParams = sanitize(params);
+          const stmt = self.db.prepare(sql);
+          stmt.bind(cleanParams);
+          if (stmt.step()) {
+            const cols = stmt.getColumnNames();
+            const vals = stmt.get();
+            stmt.free();
+            const row = {};
+            cols.forEach((col, i) => { row[col] = vals[i]; });
+            return row;
+          }
+          stmt.free();
+          return undefined;
+        } catch (err) {
+          throw err;
+        }
+      },
+      all(...params) {
+        try {
+          const cleanParams = sanitize(params);
+          const results = [];
+          const stmt = self.db.prepare(sql);
+          stmt.bind(cleanParams);
+          while (stmt.step()) {
+            const cols = stmt.getColumnNames();
+            const vals = stmt.get();
+            const row = {};
+            cols.forEach((col, i) => { row[col] = vals[i]; });
+            results.push(row);
+          }
+          stmt.free();
+          return results;
+        } catch (err) {
+          throw err;
+        }
+      }
+    };
+  }
+
+  // Direct exec for multi-statement SQL
+  exec(sql) {
+    this.db.run(sql);
+    this._save();
+  }
+
+  // Close database
+  close() {
+    if (this.db) {
+      this._save();
+      this.db.close();
+    }
+  }
+}
+
+// Create singleton instance
+const dbWrapper = new DatabaseWrapper();
+
+// Export the promise that resolves to the initialized wrapper
+module.exports = dbWrapper;
+module.exports.initializeDatabase = () => dbWrapper.initialize();

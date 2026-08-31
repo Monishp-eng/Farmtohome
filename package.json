@@ -1,0 +1,30 @@
+{
+  "name": "for-farmers-for-us",
+  "version": "1.0.0",
+  "description": "Digital Agriculture Marketplace - Connecting Farmers Directly with Consumers",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\" \"npm run ai\"",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm run dev",
+    "ai": "cd ai-service && python app.py",
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install && cd ../ai-service && pip install -r requirements.txt",
+    "seed": "cd server && node seed/seed.js",
+    "build": "cd client && npm run build"
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "agriculture",
+    "marketplace",
+    "farmers",
+    "FPO",
+    "direct-to-consumer",
+    "AI",
+    "demand-forecasting",
+    "route-optimization"
+  ],
+  "author": "For Farmers For Us Team",
+  "license": "MIT"
+}

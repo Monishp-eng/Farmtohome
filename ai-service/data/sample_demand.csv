@@ -1,0 +1,601 @@
+date,category,region,demand_kg,price_per_kg,rainfall_mm,temperature_c,festival_flag,season
+2024-12-06,fruits,Gujarat,1800.3,170.93,21.3,19.5,0,Rabi
+2025-11-04,vegetables,Punjab,2756.77,46.39,25.67,19.7,1,Rabi
+2025-05-23,dairy,Maharashtra,1820.54,62.6,45.38,26.8,0,Zaid
+2024-12-10,pulses,Karnataka,1562.27,106.7,18.9,29.1,0,Rabi
+2024-11-05,fruits,Punjab,1493.07,98.2,12.68,23.1,1,Rabi
+2026-07-27,spices,Punjab,1611.46,158.1,246.84,29.9,0,Kharif
+2024-09-15,grains,Andhra Pradesh,856.26,92.04,143.31,16.7,0,Kharif
+2026-05-02,vegetables,Karnataka,1154.5,164.38,48.9,26.1,0,Zaid
+2024-12-25,oilseeds,Andhra Pradesh,565.1,186.44,45.96,20.1,0,Rabi
+2025-12-05,grains,Gujarat,613.15,49.92,10.84,20.9,0,Rabi
+2025-03-28,vegetables,Andhra Pradesh,1545.39,89.16,36.86,33.3,0,Rabi
+2025-07-22,fruits,Delhi,586.8,91.01,32.03,21.7,0,Kharif
+2025-11-27,fruits,Gujarat,2205.41,89.89,11.47,20.3,1,Rabi
+2024-11-21,dairy,Maharashtra,1334.89,101.58,1.62,20.6,1,Rabi
+2025-09-02,dairy,Gujarat,1404.17,68.77,39.96,16.5,0,Kharif
+2024-12-03,spices,Punjab,1124.96,124.61,45.96,16.7,0,Rabi
+2026-06-20,spices,Punjab,1327.38,49.67,123.38,30.6,0,Kharif
+2025-01-03,fruits,Delhi,1977.93,87.81,37.48,22.9,0,Rabi
+2026-06-18,grains,Kerala,1353.62,31.43,11.05,17.7,0,Kharif
+2025-06-30,dairy,Delhi,613.04,144.51,160.3,30.0,0,Kharif
+2025-08-04,grains,Andhra Pradesh,2066.59,150.7,227.12,22.6,1,Kharif
+2025-12-30,dairy,Karnataka,807.57,65.26,13.74,19.1,0,Rabi
+2025-10-13,vegetables,Maharashtra,2453.25,28.44,80.6,15.4,1,Kharif
+2025-09-15,fruits,Punjab,1214.32,169.65,92.33,31.3,0,Kharif
+2025-03-05,pulses,Andhra Pradesh,632.61,162.53,29.5,24.6,0,Rabi
+2025-05-29,oilseeds,Tamil Nadu,1677.0,135.09,40.25,33.1,0,Zaid
+2025-02-02,pulses,Punjab,1025.88,126.19,19.61,23.7,0,Rabi
+2025-11-28,oilseeds,Punjab,1533.57,112.52,39.18,22.9,1,Rabi
+2025-07-05,oilseeds,Punjab,1793.55,190.91,44.12,33.5,0,Kharif
+2024-09-16,fruits,Maharashtra,887.37,102.64,294.01,24.9,0,Kharif
+2025-05-05,dairy,Karnataka,1450.1,63.23,3.79,17.6,0,Zaid
+2026-03-09,oilseeds,Delhi,727.85,44.99,32.04,18.6,0,Rabi
+2025-12-13,vegetables,Kerala,1811.48,112.74,48.66,27.0,0,Rabi
+2024-10-23,grains,Kerala,2599.03,82.11,104.29,15.6,1,Kharif
+2026-01-18,spices,Maharashtra,1301.64,84.08,44.71,17.6,0,Rabi
+2026-07-08,fruits,Andhra Pradesh,982.37,36.61,144.34,28.8,0,Kharif
+2025-12-14,spices,Kerala,1881.31,30.99,13.84,31.1,0,Rabi
+2026-07-26,vegetables,Kerala,776.78,57.68,111.14,24.7,0,Kharif
+2025-03-03,fruits,Gujarat,1053.37,103.26,37.37,15.7,0,Rabi
+2026-07-13,grains,Tamil Nadu,1530.75,172.0,224.88,15.6,0,Kharif
+2026-03-11,fruits,Punjab,1031.22,91.49,5.24,29.7,0,Rabi
+2026-03-15,pulses,Punjab,1345.95,171.33,4.46,25.7,0,Rabi
+2025-04-26,vegetables,Maharashtra,1014.39,105.31,17.76,28.0,0,Zaid
+2026-01-12,fruits,Tamil Nadu,1376.3,152.63,27.89,26.7,0,Rabi
+2025-01-03,pulses,Kerala,1068.16,80.74,44.98,27.2,0,Rabi
+2025-12-23,grains,Delhi,1247.37,79.46,46.68,15.2,0,Rabi
+2026-06-03,dairy,Karnataka,1048.04,107.81,255.25,16.8,0,Kharif
+2024-09-15,spices,Tamil Nadu,583.48,171.62,15.49,15.4,0,Kharif
+2025-02-08,dairy,Gujarat,1995.88,181.39,28.8,33.3,0,Rabi
+2025-05-26,oilseeds,Karnataka,1962.6,108.33,36.14,31.4,0,Zaid
+2025-09-17,fruits,Tamil Nadu,1302.56,105.79,251.57,19.1,0,Kharif
+2026-04-18,fruits,Karnataka,1566.43,55.91,36.81,25.6,0,Zaid
+2025-07-07,vegetables,Punjab,1651.67,35.71,151.83,33.6,0,Kharif
+2024-09-08,dairy,Kerala,1390.82,86.46,136.28,26.0,0,Kharif
+2025-04-24,fruits,Gujarat,802.6,143.22,4.39,17.8,0,Zaid
+2025-08-06,vegetables,Maharashtra,1012.57,105.17,181.83,30.9,1,Kharif
+2026-03-13,oilseeds,Maharashtra,1776.09,154.28,20.43,33.7,0,Rabi
+2025-07-31,grains,Maharashtra,807.5,88.26,277.93,29.4,0,Kharif
+2024-11-25,pulses,Delhi,2508.41,169.03,37.53,31.0,1,Rabi
+2025-08-27,grains,Andhra Pradesh,1169.41,62.42,190.13,33.2,1,Kharif
+2025-11-23,vegetables,Andhra Pradesh,2073.69,142.94,22.6,29.3,1,Rabi
+2025-10-27,grains,Andhra Pradesh,1428.1,154.57,150.82,19.6,1,Kharif
+2026-01-16,vegetables,Tamil Nadu,1075.84,117.84,45.32,27.5,0,Rabi
+2024-09-29,grains,Karnataka,1909.75,132.99,100.47,17.8,0,Kharif
+2025-03-19,oilseeds,Tamil Nadu,1430.11,116.02,44.69,30.8,0,Rabi
+2024-11-14,spices,Maharashtra,1451.37,64.73,37.2,15.7,1,Rabi
+2026-03-10,spices,Punjab,1643.69,177.82,17.1,31.4,0,Rabi
+2025-09-17,oilseeds,Tamil Nadu,1769.68,42.95,119.19,30.9,0,Kharif
+2024-08-27,dairy,Andhra Pradesh,1265.82,150.01,216.01,27.8,1,Kharif
+2025-09-19,grains,Gujarat,1314.09,65.32,103.71,18.6,0,Kharif
+2026-03-14,fruits,Delhi,1375.09,92.15,23.1,33.9,0,Rabi
+2024-12-09,pulses,Punjab,1379.34,111.06,30.57,15.4,0,Rabi
+2025-12-15,pulses,Kerala,1898.18,121.72,34.83,33.4,0,Rabi
+2026-07-29,oilseeds,Punjab,1656.87,87.4,20.68,16.5,0,Kharif
+2025-10-01,spices,Delhi,2640.99,183.92,36.84,19.7,1,Kharif
+2026-08-25,fruits,Karnataka,1169.22,170.75,99.64,21.2,1,Kharif
+2026-03-04,grains,Delhi,1411.84,88.28,37.21,19.1,0,Rabi
+2025-02-03,vegetables,Andhra Pradesh,1405.58,40.57,20.73,32.3,0,Rabi
+2025-03-15,spices,Punjab,1198.55,106.55,45.92,26.7,0,Rabi
+2025-05-22,grains,Gujarat,1869.12,64.68,28.88,18.3,0,Zaid
+2025-05-23,dairy,Delhi,967.21,160.49,13.88,19.4,0,Zaid
+2025-11-24,fruits,Andhra Pradesh,1909.14,195.6,22.95,26.1,1,Rabi
+2025-11-30,spices,Gujarat,1953.91,53.2,14.98,21.2,1,Rabi
+2026-08-22,spices,Tamil Nadu,1710.28,163.96,104.82,24.4,1,Kharif
+2025-05-04,vegetables,Andhra Pradesh,1066.59,170.58,29.37,20.9,0,Zaid
+2026-07-28,grains,Tamil Nadu,1291.47,116.2,144.33,24.9,0,Kharif
+2025-06-17,grains,Tamil Nadu,654.47,80.19,22.65,30.1,0,Kharif
+2026-08-20,fruits,Punjab,2769.22,114.78,240.22,34.6,1,Kharif
+2026-08-15,fruits,Tamil Nadu,2232.58,24.88,66.59,19.6,1,Kharif
+2025-07-29,grains,Tamil Nadu,529.57,38.74,239.97,18.6,0,Kharif
+2024-10-17,vegetables,Gujarat,1285.91,37.9,72.95,29.4,1,Kharif
+2025-03-30,spices,Kerala,1943.97,189.99,7.05,23.1,0,Rabi
+2025-03-01,oilseeds,Delhi,630.39,133.98,36.8,32.0,0,Rabi
+2025-09-09,dairy,Kerala,1374.56,95.86,267.8,31.3,0,Kharif
+2025-12-31,pulses,Kerala,889.14,88.34,29.51,20.4,0,Rabi
+2024-10-05,dairy,Andhra Pradesh,1671.18,119.37,130.84,20.9,1,Kharif
+2025-01-29,pulses,Punjab,1645.41,45.22,43.42,24.7,0,Rabi
+2024-09-09,spices,Tamil Nadu,1699.78,96.54,6.74,20.4,0,Kharif
+2024-10-29,fruits,Andhra Pradesh,1655.74,59.24,193.52,23.4,1,Kharif
+2026-01-28,fruits,Punjab,1850.86,144.42,34.16,31.5,0,Rabi
+2025-08-04,dairy,Punjab,2047.16,69.33,166.25,28.0,1,Kharif
+2025-01-01,fruits,Gujarat,809.63,21.98,6.84,33.0,0,Rabi
+2026-06-04,spices,Kerala,1396.12,128.09,199.51,18.5,0,Kharif
+2025-12-10,dairy,Maharashtra,1128.16,88.96,25.95,15.9,0,Rabi
+2024-10-27,pulses,Karnataka,2410.58,34.9,180.95,19.9,1,Kharif
+2025-01-11,dairy,Kerala,933.04,84.02,35.95,20.9,0,Rabi
+2026-01-06,grains,Karnataka,1214.08,139.46,46.84,29.7,0,Rabi
+2026-04-10,vegetables,Punjab,546.77,67.21,29.75,16.0,0,Zaid
+2025-09-21,spices,Kerala,1395.26,80.16,231.27,17.1,0,Kharif
+2026-07-01,vegetables,Delhi,1592.28,109.19,206.52,23.7,0,Kharif
+2025-10-18,oilseeds,Kerala,2592.98,163.89,208.41,20.4,1,Kharif
+2025-06-10,fruits,Gujarat,1041.46,36.48,275.19,17.7,0,Kharif
+2025-09-08,fruits,Maharashtra,1169.01,53.32,162.57,32.5,0,Kharif
+2025-12-28,oilseeds,Andhra Pradesh,1638.55,150.34,31.86,34.6,0,Rabi
+2025-04-13,fruits,Maharashtra,1470.0,144.77,2.58,28.4,0,Zaid
+2024-10-05,fruits,Delhi,2831.81,52.5,170.38,33.3,1,Kharif
+2024-09-22,spices,Tamil Nadu,1546.13,73.52,277.32,34.4,0,Kharif
+2025-01-07,oilseeds,Andhra Pradesh,1211.32,175.17,42.23,21.4,0,Rabi
+2025-03-14,fruits,Tamil Nadu,555.51,127.33,11.5,17.4,0,Rabi
+2024-09-27,fruits,Kerala,1544.43,81.18,217.43,16.3,0,Kharif
+2024-10-12,oilseeds,Delhi,1963.86,162.33,95.63,27.5,1,Kharif
+2026-01-10,dairy,Punjab,1815.0,95.15,23.1,34.8,0,Rabi
+2025-10-06,grains,Tamil Nadu,1167.31,89.11,279.78,16.4,1,Kharif
+2026-03-22,spices,Gujarat,579.03,35.94,1.88,24.6,0,Rabi
+2026-08-23,pulses,Tamil Nadu,1646.15,36.51,100.91,25.5,1,Kharif
+2024-12-02,vegetables,Karnataka,505.02,104.12,14.85,32.1,0,Rabi
+2026-07-10,fruits,Karnataka,1383.66,69.91,273.1,15.9,0,Kharif
+2026-08-21,oilseeds,Maharashtra,1631.17,42.4,286.92,31.0,1,Kharif
+2026-02-23,dairy,Kerala,1382.83,196.82,44.21,27.0,0,Rabi
+2026-04-30,spices,Andhra Pradesh,1983.78,153.8,3.25,23.0,0,Zaid
+2025-11-30,dairy,Tamil Nadu,1268.78,169.52,6.02,15.9,1,Rabi
+2026-05-30,vegetables,Punjab,555.1,192.31,41.31,31.0,0,Zaid
+2024-08-30,spices,Tamil Nadu,1236.73,113.29,179.18,25.5,1,Kharif
+2025-03-31,grains,Punjab,1272.87,108.41,49.82,32.9,0,Rabi
+2026-01-10,grains,Karnataka,1434.41,154.62,1.74,32.9,0,Rabi
+2025-09-27,dairy,Punjab,1186.15,90.41,81.89,24.5,0,Kharif
+2025-09-22,grains,Maharashtra,1778.29,26.38,98.72,33.6,0,Kharif
+2025-03-20,grains,Kerala,922.09,65.48,0.25,28.9,0,Rabi
+2024-09-09,fruits,Punjab,621.57,59.63,204.98,16.5,0,Kharif
+2026-03-02,vegetables,Punjab,1242.72,106.51,29.62,31.5,0,Rabi
+2025-11-29,fruits,Delhi,2022.9,68.07,43.93,30.9,1,Rabi
+2026-07-17,pulses,Maharashtra,736.01,48.87,100.2,19.8,0,Kharif
+2026-03-23,dairy,Punjab,658.75,145.82,9.46,32.6,0,Rabi
+2025-04-23,dairy,Punjab,1198.21,178.23,0.26,31.4,0,Zaid
+2026-03-12,dairy,Karnataka,1863.05,20.2,27.81,30.1,0,Rabi
+2024-11-29,pulses,Tamil Nadu,1184.55,35.14,16.32,26.2,1,Rabi
+2025-12-23,oilseeds,Punjab,1451.01,117.2,38.99,17.1,0,Rabi
+2025-10-06,spices,Tamil Nadu,1967.85,193.34,102.56,27.7,1,Kharif
+2025-04-13,spices,Andhra Pradesh,653.76,188.7,34.39,16.4,0,Zaid
+2026-06-11,grains,Delhi,1562.26,32.12,174.65,21.9,0,Kharif
+2025-02-12,fruits,Delhi,568.61,176.88,48.67,34.4,0,Rabi
+2026-02-17,pulses,Kerala,695.13,156.49,1.23,15.4,0,Rabi
+2024-09-30,spices,Tamil Nadu,1232.96,158.67,204.99,23.9,0,Kharif
+2026-02-01,spices,Punjab,1995.69,96.71,22.57,18.3,0,Rabi
+2025-02-01,oilseeds,Andhra Pradesh,1540.52,59.74,4.12,28.6,0,Rabi
+2026-07-25,spices,Kerala,909.89,191.16,45.32,23.6,0,Kharif
+2025-04-25,dairy,Tamil Nadu,1129.59,134.93,19.88,20.5,0,Zaid
+2024-11-19,grains,Kerala,1671.0,180.94,11.5,19.3,1,Rabi
+2026-03-26,vegetables,Maharashtra,1572.39,121.3,23.58,25.9,0,Rabi
+2026-07-08,pulses,Karnataka,805.55,36.41,46.1,24.1,0,Kharif
+2026-03-05,fruits,Gujarat,526.79,163.42,14.71,33.2,0,Rabi
+2026-03-22,fruits,Kerala,778.19,103.18,0.06,27.0,0,Rabi
+2026-06-02,spices,Gujarat,871.31,120.51,67.66,18.2,0,Kharif
+2024-09-22,spices,Karnataka,988.89,126.25,129.97,34.7,0,Kharif
+2026-05-07,vegetables,Delhi,1196.9,142.48,19.78,34.5,0,Zaid
+2026-03-04,spices,Delhi,1485.48,156.27,47.63,33.2,0,Rabi
+2025-07-31,grains,Karnataka,1623.74,46.27,30.84,26.4,0,Kharif
+2025-07-22,oilseeds,Delhi,1223.53,57.86,103.8,30.5,0,Kharif
+2026-05-27,fruits,Gujarat,608.62,116.16,44.13,16.7,0,Zaid
+2026-01-13,dairy,Gujarat,1036.7,77.98,48.87,19.0,0,Rabi
+2025-08-08,fruits,Punjab,2598.24,27.41,201.12,34.0,1,Kharif
+2025-12-11,dairy,Kerala,1844.33,127.06,30.83,27.3,0,Rabi
+2025-04-13,vegetables,Punjab,1902.8,190.52,31.27,30.7,0,Zaid
+2025-03-03,oilseeds,Kerala,1226.6,138.95,27.65,26.9,0,Rabi
+2025-04-07,spices,Punjab,1221.36,27.34,8.2,23.8,0,Zaid
+2025-09-14,fruits,Karnataka,1389.92,137.05,143.78,27.3,0,Kharif
+2025-09-06,grains,Tamil Nadu,1205.27,153.97,261.55,23.7,0,Kharif
+2025-06-04,grains,Gujarat,1333.05,149.46,68.54,34.9,0,Kharif
+2026-05-20,vegetables,Kerala,1475.49,55.92,34.01,16.4,0,Zaid
+2026-05-15,oilseeds,Tamil Nadu,886.52,103.27,43.41,29.5,0,Zaid
+2025-05-11,dairy,Delhi,1138.24,82.27,18.55,34.8,0,Zaid
+2025-08-19,fruits,Maharashtra,1906.49,125.85,8.82,22.9,1,Kharif
+2026-08-05,pulses,Punjab,2094.88,162.73,196.5,34.8,1,Kharif
+2025-11-24,fruits,Karnataka,1558.09,89.09,23.29,31.7,1,Rabi
+2025-10-10,vegetables,Kerala,2496.0,92.96,180.56,27.7,1,Kharif
+2026-06-05,spices,Karnataka,1268.92,94.35,20.74,23.7,0,Kharif
+2025-07-09,spices,Gujarat,1107.53,126.73,173.82,28.3,0,Kharif
+2026-07-03,oilseeds,Karnataka,1478.18,76.19,119.71,32.2,0,Kharif
+2025-04-07,dairy,Tamil Nadu,1382.62,127.77,19.83,19.7,0,Zaid
+2025-04-16,oilseeds,Kerala,1825.56,99.56,16.54,24.0,0,Zaid
+2026-07-10,pulses,Karnataka,718.63,100.9,176.37,34.0,0,Kharif
+2026-06-20,vegetables,Delhi,1038.88,88.28,181.66,22.1,0,Kharif
+2025-09-03,pulses,Andhra Pradesh,1672.69,146.97,133.91,32.3,0,Kharif
+2026-06-28,spices,Gujarat,1309.86,26.15,296.01,17.5,0,Kharif
+2026-04-25,dairy,Gujarat,577.55,135.2,11.24,18.6,0,Zaid
+2025-12-10,grains,Andhra Pradesh,654.96,125.24,34.41,22.9,0,Rabi
+2025-04-15,fruits,Delhi,1528.95,23.13,16.16,34.5,0,Zaid
+2026-07-18,oilseeds,Tamil Nadu,881.34,113.91,102.8,25.6,0,Kharif
+2024-12-16,oilseeds,Delhi,699.07,45.84,46.99,29.7,0,Rabi
+2026-01-04,fruits,Andhra Pradesh,640.85,141.07,22.19,32.4,0,Rabi
+2025-11-10,spices,Tamil Nadu,2308.41,170.86,47.23,28.7,1,Rabi
+2026-03-12,fruits,Punjab,1426.77,176.4,28.53,15.6,0,Rabi
+2025-05-20,vegetables,Karnataka,1878.02,128.11,47.04,31.5,0,Zaid
+2026-01-17,dairy,Maharashtra,659.89,138.41,49.97,16.0,0,Rabi
+2025-09-15,vegetables,Maharashtra,1110.36,176.74,234.72,26.3,0,Kharif
+2025-09-16,vegetables,Kerala,1817.77,92.75,98.11,28.4,0,Kharif
+2024-12-16,spices,Punjab,1643.43,163.61,21.78,31.4,0,Rabi
+2026-04-30,spices,Karnataka,1473.61,79.11,31.51,27.2,0,Zaid
+2026-05-12,oilseeds,Andhra Pradesh,1070.63,118.73,29.82,25.9,0,Zaid
+2024-11-14,grains,Gujarat,783.0,125.67,8.42,27.9,1,Rabi
+2026-07-25,fruits,Karnataka,1250.67,117.63,285.44,31.9,0,Kharif
+2024-12-16,pulses,Andhra Pradesh,1720.65,39.61,7.45,25.5,0,Rabi
+2024-08-27,oilseeds,Gujarat,1822.56,90.99,164.82,29.9,1,Kharif
+2026-05-29,pulses,Kerala,1281.85,168.03,21.54,32.9,0,Zaid
+2025-04-02,dairy,Gujarat,1931.99,137.84,19.0,18.9,0,Zaid
+2026-03-14,dairy,Karnataka,791.84,49.94,30.87,25.5,0,Rabi
+2025-04-07,spices,Kerala,1894.41,115.81,29.05,16.8,0,Zaid
+2025-09-14,spices,Punjab,1099.86,195.81,246.95,25.4,0,Kharif
+2025-10-02,oilseeds,Tamil Nadu,2683.69,163.96,55.38,20.9,1,Kharif
+2026-05-25,vegetables,Punjab,777.84,185.2,21.23,16.7,0,Zaid
+2025-01-02,spices,Maharashtra,1060.26,114.77,5.62,15.1,0,Rabi
+2024-10-17,spices,Karnataka,1909.14,126.84,238.12,27.9,1,Kharif
+2026-07-10,fruits,Maharashtra,1759.79,182.0,106.03,19.7,0,Kharif
+2026-08-25,dairy,Gujarat,1368.31,168.07,127.12,28.4,1,Kharif
+2026-06-28,fruits,Kerala,1435.79,101.32,175.98,18.4,0,Kharif
+2026-08-05,grains,Gujarat,2691.29,59.01,28.71,15.5,1,Kharif
+2025-10-15,oilseeds,Kerala,2115.96,118.41,69.58,22.8,1,Kharif
+2025-04-29,dairy,Maharashtra,1245.15,197.8,6.82,28.9,0,Zaid
+2025-11-07,grains,Punjab,1713.45,149.17,34.62,34.8,1,Rabi
+2025-03-16,pulses,Karnataka,656.16,150.38,28.92,20.5,0,Rabi
+2025-02-25,spices,Gujarat,628.49,180.95,9.59,21.5,0,Rabi
+2024-12-26,grains,Karnataka,1032.49,32.5,25.95,16.4,0,Rabi
+2025-09-30,dairy,Gujarat,850.57,117.2,264.02,28.0,0,Kharif
+2025-06-15,spices,Gujarat,986.5,79.94,200.85,34.9,0,Kharif
+2025-06-01,fruits,Karnataka,1336.68,151.52,139.56,16.2,0,Kharif
+2026-04-27,pulses,Punjab,1936.44,51.55,34.5,19.0,0,Zaid
+2025-03-11,fruits,Karnataka,1134.03,167.93,0.06,21.0,0,Rabi
+2026-01-18,pulses,Kerala,1890.77,62.24,19.97,18.0,0,Rabi
+2025-01-16,dairy,Gujarat,1890.5,117.19,42.1,25.4,0,Rabi
+2026-04-26,spices,Karnataka,633.69,155.95,6.39,31.5,0,Zaid
+2025-03-14,spices,Gujarat,1563.12,26.51,15.16,20.3,0,Rabi
+2024-12-27,fruits,Maharashtra,631.46,188.65,27.69,21.1,0,Rabi
+2025-02-28,pulses,Karnataka,1170.8,128.11,25.78,33.4,0,Rabi
+2025-07-17,grains,Tamil Nadu,1988.24,173.26,62.55,33.6,0,Kharif
+2025-12-02,fruits,Karnataka,1726.17,88.51,43.9,32.4,0,Rabi
+2025-08-09,spices,Kerala,2527.57,74.84,24.28,23.1,1,Kharif
+2026-06-16,fruits,Kerala,1542.43,82.3,292.68,27.8,0,Kharif
+2025-10-02,vegetables,Punjab,1048.18,175.16,276.83,24.7,1,Kharif
+2025-08-06,spices,Delhi,2470.82,51.47,150.77,23.0,1,Kharif
+2026-01-18,vegetables,Andhra Pradesh,1051.3,32.27,1.29,17.7,0,Rabi
+2025-01-19,pulses,Andhra Pradesh,1324.29,193.85,21.62,21.2,0,Rabi
+2025-01-20,spices,Gujarat,1159.27,39.02,32.04,19.3,0,Rabi
+2026-08-06,spices,Punjab,2212.95,47.36,18.4,30.6,1,Kharif
+2025-12-27,fruits,Maharashtra,587.25,199.08,2.89,28.9,0,Rabi
+2026-05-27,vegetables,Tamil Nadu,858.77,45.6,6.07,21.1,0,Zaid
+2026-02-27,grains,Tamil Nadu,1538.24,31.21,25.47,34.9,0,Rabi
+2025-07-29,vegetables,Andhra Pradesh,1422.83,75.13,187.17,25.5,0,Kharif
+2026-05-28,oilseeds,Punjab,696.07,179.59,22.49,18.9,0,Zaid
+2025-12-11,oilseeds,Kerala,1121.19,168.96,36.68,30.4,0,Rabi
+2025-01-23,spices,Tamil Nadu,1124.23,106.64,0.96,20.2,0,Rabi
+2025-10-14,fruits,Tamil Nadu,1058.5,116.36,64.56,15.2,1,Kharif
+2025-06-19,fruits,Andhra Pradesh,1963.81,164.28,287.87,24.8,0,Kharif
+2026-04-28,grains,Maharashtra,1321.94,101.79,42.22,17.0,0,Zaid
+2025-05-15,fruits,Karnataka,725.07,78.44,36.87,24.5,0,Zaid
+2025-01-16,vegetables,Andhra Pradesh,1091.71,102.7,39.25,32.8,0,Rabi
+2025-08-06,vegetables,Delhi,2520.53,76.77,206.44,23.8,1,Kharif
+2026-05-11,dairy,Maharashtra,1761.31,26.92,45.09,24.2,0,Zaid
+2026-03-20,grains,Tamil Nadu,1489.03,181.12,31.83,27.3,0,Rabi
+2024-08-27,pulses,Tamil Nadu,1916.42,47.03,221.23,25.2,1,Kharif
+2025-06-25,dairy,Delhi,562.51,35.26,214.9,16.4,0,Kharif
+2025-05-06,grains,Delhi,553.36,111.54,19.38,24.2,0,Zaid
+2026-06-08,pulses,Kerala,1956.12,189.62,235.15,22.1,0,Kharif
+2025-11-21,fruits,Andhra Pradesh,1986.64,169.5,3.44,23.5,1,Rabi
+2024-10-01,oilseeds,Delhi,1907.98,181.8,234.75,19.6,1,Kharif
+2025-02-01,vegetables,Punjab,1501.03,21.88,12.77,20.2,0,Rabi
+2024-09-03,vegetables,Maharashtra,1939.74,106.09,268.74,21.4,0,Kharif
+2025-04-15,pulses,Gujarat,1211.5,40.51,24.3,33.4,0,Zaid
+2024-12-02,pulses,Punjab,692.14,80.89,46.4,19.5,0,Rabi
+2026-06-15,vegetables,Delhi,1148.12,99.09,183.88,33.9,0,Kharif
+2025-03-21,spices,Gujarat,682.25,55.54,44.35,27.9,0,Rabi
+2025-01-03,grains,Punjab,1723.92,175.05,42.33,33.4,0,Rabi
+2025-10-03,fruits,Andhra Pradesh,2448.84,102.9,252.6,29.6,1,Kharif
+2025-01-24,oilseeds,Tamil Nadu,1484.24,51.94,27.25,34.7,0,Rabi
+2024-10-18,spices,Gujarat,847.14,49.67,39.52,29.5,1,Kharif
+2024-12-23,grains,Punjab,820.27,111.05,42.04,29.7,0,Rabi
+2026-06-29,grains,Andhra Pradesh,1385.52,111.5,89.26,26.3,0,Kharif
+2026-05-15,dairy,Karnataka,1809.98,134.53,38.06,18.2,0,Zaid
+2026-04-04,fruits,Punjab,514.0,64.4,36.32,34.8,0,Zaid
+2026-05-12,grains,Delhi,1819.72,138.36,15.55,29.8,0,Zaid
+2025-10-19,spices,Tamil Nadu,2133.7,143.82,112.58,25.8,1,Kharif
+2025-10-21,pulses,Karnataka,2658.11,171.19,249.8,15.2,1,Kharif
+2024-12-07,vegetables,Punjab,1638.01,142.11,37.81,31.8,0,Rabi
+2025-05-06,spices,Delhi,1253.08,42.45,19.27,27.9,0,Zaid
+2025-04-09,fruits,Delhi,825.81,44.81,33.15,15.0,0,Zaid
+2024-12-15,oilseeds,Andhra Pradesh,543.61,50.04,9.07,22.8,0,Rabi
+2026-01-17,vegetables,Tamil Nadu,1811.39,111.82,36.17,17.1,0,Rabi
+2025-12-11,fruits,Tamil Nadu,1554.42,29.5,24.33,27.0,0,Rabi
+2024-12-02,grains,Tamil Nadu,534.4,77.98,31.82,18.0,0,Rabi
+2025-01-25,dairy,Gujarat,1677.35,147.38,39.43,25.3,0,Rabi
+2025-07-29,dairy,Gujarat,683.57,152.39,70.76,22.4,0,Kharif
+2026-08-01,vegetables,Kerala,2553.08,157.99,220.08,21.0,1,Kharif
+2025-02-04,vegetables,Maharashtra,1456.33,109.31,8.91,28.7,0,Rabi
+2026-08-15,oilseeds,Karnataka,2431.24,153.2,285.09,19.1,1,Kharif
+2026-07-07,pulses,Andhra Pradesh,1969.47,49.75,210.08,26.7,0,Kharif
+2025-02-02,spices,Andhra Pradesh,1546.51,187.33,39.13,16.1,0,Rabi
+2026-03-28,grains,Karnataka,838.31,87.84,23.09,24.6,0,Rabi
+2025-09-27,dairy,Punjab,1906.03,147.08,189.35,16.0,0,Kharif
+2025-05-29,oilseeds,Punjab,1864.09,160.44,0.35,16.1,0,Zaid
+2026-01-11,spices,Gujarat,697.02,91.79,46.13,24.4,0,Rabi
+2025-09-21,dairy,Karnataka,924.12,28.03,10.89,20.5,0,Kharif
+2025-01-07,oilseeds,Gujarat,1680.69,195.47,18.56,23.6,0,Rabi
+2025-03-08,vegetables,Andhra Pradesh,902.21,48.15,42.65,15.9,0,Rabi
+2025-09-30,fruits,Punjab,1342.99,82.27,94.56,30.4,0,Kharif
+2026-05-27,spices,Tamil Nadu,855.18,151.84,27.42,17.6,0,Zaid
+2024-09-27,oilseeds,Andhra Pradesh,578.39,95.38,78.05,29.6,0,Kharif
+2026-07-14,fruits,Andhra Pradesh,884.8,137.75,59.43,26.3,0,Kharif
+2025-11-28,grains,Kerala,2937.01,129.53,17.48,17.3,1,Rabi
+2025-12-08,fruits,Andhra Pradesh,837.98,65.17,42.53,26.2,0,Rabi
+2025-09-04,vegetables,Delhi,672.15,174.83,216.84,16.4,0,Kharif
+2024-09-16,spices,Maharashtra,1315.31,34.71,137.49,24.7,0,Kharif
+2026-06-26,dairy,Andhra Pradesh,1918.55,173.0,200.71,24.2,0,Kharif
+2024-10-02,grains,Andhra Pradesh,2435.89,72.31,236.09,17.2,1,Kharif
+2025-04-12,grains,Punjab,1967.09,162.92,24.86,21.8,0,Zaid
+2025-08-25,dairy,Gujarat,1975.91,156.52,226.23,15.4,1,Kharif
+2026-03-11,dairy,Tamil Nadu,1819.37,176.7,11.94,24.0,0,Rabi
+2025-11-06,fruits,Gujarat,2487.03,24.89,3.26,24.3,1,Rabi
+2025-06-04,pulses,Maharashtra,1086.09,163.7,111.58,24.0,0,Kharif
+2024-09-21,grains,Punjab,640.11,99.39,58.68,18.7,0,Kharif
+2025-04-08,pulses,Gujarat,1636.22,69.76,15.62,27.9,0,Zaid
+2025-05-29,oilseeds,Delhi,1845.44,113.63,22.38,26.2,0,Zaid
+2026-04-26,fruits,Tamil Nadu,1420.21,85.36,44.86,18.4,0,Zaid
+2025-06-05,spices,Maharashtra,1397.17,26.01,109.11,29.7,0,Kharif
+2025-12-19,grains,Andhra Pradesh,1160.49,130.75,4.17,32.6,0,Rabi
+2025-11-21,pulses,Kerala,1886.72,194.08,20.89,34.7,1,Rabi
+2026-06-15,dairy,Karnataka,1452.01,49.87,264.58,23.5,0,Kharif
+2026-01-23,oilseeds,Delhi,518.91,120.76,26.37,29.4,0,Rabi
+2026-02-23,fruits,Punjab,619.11,151.67,9.37,32.2,0,Rabi
+2025-03-05,pulses,Karnataka,1311.19,147.84,15.72,24.4,0,Rabi
+2024-10-13,oilseeds,Gujarat,1783.35,84.4,148.26,31.6,1,Kharif
+2026-01-19,pulses,Karnataka,760.64,148.16,41.3,17.0,0,Rabi
+2024-09-11,dairy,Kerala,712.96,82.63,135.11,30.0,0,Kharif
+2025-02-13,vegetables,Tamil Nadu,1431.39,83.43,42.07,24.4,0,Rabi
+2025-04-02,oilseeds,Kerala,1451.21,42.73,33.81,21.5,0,Zaid
+2025-01-30,pulses,Tamil Nadu,762.32,174.03,11.36,31.7,0,Rabi
+2025-12-15,oilseeds,Delhi,1464.32,144.95,25.63,21.1,0,Rabi
+2024-10-10,oilseeds,Andhra Pradesh,824.68,74.71,195.95,33.8,1,Kharif
+2025-09-02,pulses,Maharashtra,1649.1,161.92,199.5,20.2,0,Kharif
+2026-01-25,vegetables,Karnataka,1506.1,120.88,5.55,23.9,0,Rabi
+2024-12-02,spices,Karnataka,1796.85,118.4,19.02,34.5,0,Rabi
+2024-10-01,spices,Kerala,1700.73,27.56,221.97,33.4,1,Kharif
+2025-06-01,oilseeds,Karnataka,1787.51,72.6,273.23,30.1,0,Kharif
+2025-08-09,vegetables,Gujarat,790.51,193.31,218.0,21.1,1,Kharif
+2026-01-04,oilseeds,Maharashtra,922.28,177.1,5.63,29.1,0,Rabi
+2025-06-23,dairy,Gujarat,644.8,63.54,3.72,24.4,0,Kharif
+2025-02-22,vegetables,Karnataka,1397.54,73.5,15.0,29.9,0,Rabi
+2026-04-24,pulses,Kerala,1854.34,173.41,33.39,26.9,0,Zaid
+2024-12-02,vegetables,Delhi,778.0,34.21,11.98,30.9,0,Rabi
+2026-07-26,spices,Gujarat,1374.21,199.18,256.71,25.4,0,Kharif
+2024-12-19,dairy,Delhi,1747.06,127.82,5.75,16.9,0,Rabi
+2025-03-04,dairy,Maharashtra,1503.8,169.27,43.95,26.4,0,Rabi
+2025-05-05,dairy,Tamil Nadu,1145.64,77.05,21.73,30.5,0,Zaid
+2025-02-02,vegetables,Kerala,1838.78,99.81,30.35,27.6,0,Rabi
+2025-05-08,pulses,Maharashtra,1553.95,62.74,25.62,17.1,0,Zaid
+2025-07-14,spices,Gujarat,1231.5,137.4,285.16,27.0,0,Kharif
+2024-12-31,oilseeds,Maharashtra,1259.4,134.14,3.55,20.1,0,Rabi
+2024-09-12,vegetables,Andhra Pradesh,1208.74,28.22,42.01,20.5,0,Kharif
+2026-03-14,vegetables,Maharashtra,997.02,106.77,9.8,27.2,0,Rabi
+2026-03-18,dairy,Gujarat,810.49,112.98,0.28,15.2,0,Rabi
+2025-07-14,spices,Delhi,555.08,39.44,101.66,31.1,0,Kharif
+2026-07-12,vegetables,Delhi,1269.0,72.83,279.53,22.9,0,Kharif
+2026-05-13,dairy,Maharashtra,1425.6,40.49,17.26,25.1,0,Zaid
+2025-06-09,vegetables,Tamil Nadu,1240.32,146.41,297.85,17.6,0,Kharif
+2026-06-19,spices,Andhra Pradesh,1091.86,95.93,123.31,33.2,0,Kharif
+2026-05-26,dairy,Andhra Pradesh,1411.86,75.69,41.19,34.1,0,Zaid
+2025-01-27,fruits,Andhra Pradesh,502.35,134.55,2.56,20.2,0,Rabi
+2025-12-28,oilseeds,Maharashtra,1405.69,143.59,5.72,22.7,0,Rabi
+2025-09-15,oilseeds,Gujarat,1053.58,41.78,125.68,30.0,0,Kharif
+2024-12-07,vegetables,Gujarat,620.27,83.86,47.09,28.4,0,Rabi
+2025-09-22,vegetables,Punjab,1042.88,126.86,3.04,27.7,0,Kharif
+2025-04-28,spices,Maharashtra,1418.86,177.27,36.2,17.4,0,Zaid
+2025-02-17,fruits,Andhra Pradesh,599.67,116.11,7.11,15.2,0,Rabi
+2024-10-03,spices,Gujarat,1413.84,107.48,173.16,15.9,1,Kharif
+2025-12-15,dairy,Karnataka,1337.96,81.77,36.46,28.0,0,Rabi
+2026-07-08,pulses,Andhra Pradesh,1538.74,97.39,201.89,20.5,0,Kharif
+2026-02-14,dairy,Karnataka,1683.48,100.36,39.92,31.4,0,Rabi
+2025-10-07,pulses,Gujarat,2812.43,97.58,95.66,26.6,1,Kharif
+2026-02-01,fruits,Kerala,1401.61,147.01,34.42,22.5,0,Rabi
+2026-01-13,pulses,Andhra Pradesh,1468.61,28.06,38.1,33.9,0,Rabi
+2024-09-30,grains,Andhra Pradesh,1275.86,88.2,2.01,22.7,0,Kharif
+2026-07-11,grains,Karnataka,1393.98,38.23,254.14,25.6,0,Kharif
+2024-09-14,pulses,Delhi,1982.05,101.72,206.48,17.8,0,Kharif
+2025-07-12,dairy,Karnataka,541.31,110.98,289.21,22.7,0,Kharif
+2026-01-19,grains,Karnataka,546.43,89.84,8.0,15.5,0,Rabi
+2025-09-29,grains,Andhra Pradesh,1187.78,72.06,270.02,17.3,0,Kharif
+2026-06-10,fruits,Gujarat,970.95,179.91,180.88,31.5,0,Kharif
+2025-12-09,vegetables,Andhra Pradesh,932.61,193.0,19.47,22.7,0,Rabi
+2025-01-15,spices,Gujarat,1970.16,106.02,26.61,18.4,0,Rabi
+2024-11-25,dairy,Kerala,2636.74,84.11,41.34,29.2,1,Rabi
+2025-08-14,fruits,Maharashtra,1891.75,141.93,70.51,31.6,1,Kharif
+2026-08-22,pulses,Kerala,1121.79,124.94,299.91,18.0,1,Kharif
+2024-10-15,fruits,Kerala,1216.45,160.83,220.37,21.0,1,Kharif
+2026-06-21,spices,Maharashtra,1688.78,103.06,219.25,18.0,0,Kharif
+2026-07-24,dairy,Maharashtra,1566.33,183.25,39.71,26.9,0,Kharif
+2026-03-23,fruits,Kerala,1030.19,102.52,1.9,29.9,0,Rabi
+2025-03-03,oilseeds,Gujarat,586.61,142.54,23.34,15.7,0,Rabi
+2024-12-28,spices,Maharashtra,1923.67,112.32,4.68,30.1,0,Rabi
+2025-01-22,spices,Tamil Nadu,953.67,108.46,26.12,26.3,0,Rabi
+2025-07-05,oilseeds,Tamil Nadu,1408.63,185.37,108.68,29.5,0,Kharif
+2026-03-18,dairy,Karnataka,1183.97,99.82,30.11,26.8,0,Rabi
+2025-08-02,oilseeds,Andhra Pradesh,1822.09,199.3,17.84,15.1,1,Kharif
+2025-06-26,vegetables,Maharashtra,947.65,63.27,93.57,20.1,0,Kharif
+2026-07-18,dairy,Andhra Pradesh,1957.3,59.73,220.21,30.3,0,Kharif
+2026-07-08,spices,Andhra Pradesh,545.82,176.97,158.17,27.7,0,Kharif
+2024-10-18,dairy,Delhi,2594.55,80.01,219.92,25.6,1,Kharif
+2025-11-12,spices,Tamil Nadu,2978.73,56.12,49.73,16.8,1,Rabi
+2026-04-30,spices,Tamil Nadu,566.24,81.52,31.65,16.4,0,Zaid
+2025-05-16,dairy,Delhi,1905.64,167.95,40.46,32.7,0,Zaid
+2024-10-17,grains,Punjab,984.91,91.84,216.94,20.6,1,Kharif
+2026-03-20,pulses,Karnataka,536.75,75.1,27.46,27.6,0,Rabi
+2026-05-07,dairy,Andhra Pradesh,1546.63,21.1,5.05,32.4,0,Zaid
+2024-08-30,fruits,Delhi,1004.1,171.57,72.67,24.6,1,Kharif
+2024-12-06,fruits,Punjab,1565.17,140.03,10.56,32.3,0,Rabi
+2025-03-09,grains,Delhi,938.77,47.42,13.31,15.4,0,Rabi
+2025-08-10,oilseeds,Andhra Pradesh,2645.02,118.82,65.78,15.7,1,Kharif
+2024-10-11,grains,Andhra Pradesh,1686.27,156.73,56.35,29.4,1,Kharif
+2026-06-12,spices,Punjab,1378.8,132.46,21.53,28.7,0,Kharif
+2025-05-21,spices,Punjab,1570.93,168.06,40.2,26.1,0,Zaid
+2025-08-30,oilseeds,Gujarat,1071.47,159.56,81.42,24.9,1,Kharif
+2026-05-23,spices,Punjab,700.74,133.32,2.72,30.0,0,Zaid
+2024-12-09,oilseeds,Maharashtra,500.2,112.0,2.34,20.5,0,Rabi
+2026-06-26,spices,Maharashtra,594.03,171.08,1.15,19.9,0,Kharif
+2026-06-15,vegetables,Delhi,974.41,38.34,108.07,20.4,0,Kharif
+2026-06-13,grains,Punjab,970.02,162.01,267.56,23.7,0,Kharif
+2024-12-23,vegetables,Karnataka,1065.98,193.53,4.46,28.7,0,Rabi
+2026-04-21,fruits,Andhra Pradesh,1081.47,133.89,35.19,15.1,0,Zaid
+2024-10-22,oilseeds,Andhra Pradesh,2354.35,139.95,289.81,30.2,1,Kharif
+2025-08-06,vegetables,Gujarat,2330.72,73.65,31.61,30.6,1,Kharif
+2025-12-12,pulses,Andhra Pradesh,572.28,84.81,47.84,25.0,0,Rabi
+2024-12-20,vegetables,Kerala,1186.55,57.6,18.44,22.4,0,Rabi
+2024-12-30,pulses,Tamil Nadu,1651.35,94.97,41.11,32.0,0,Rabi
+2025-09-22,vegetables,Maharashtra,1804.64,151.49,194.31,30.9,0,Kharif
+2026-05-28,oilseeds,Andhra Pradesh,553.91,91.05,46.54,17.5,0,Zaid
+2024-10-22,grains,Gujarat,2942.83,29.4,204.66,24.4,1,Kharif
+2026-05-21,vegetables,Gujarat,628.01,27.74,33.34,31.5,0,Zaid
+2026-01-20,spices,Punjab,1315.71,37.98,34.4,19.8,0,Rabi
+2024-11-29,spices,Delhi,2636.1,147.69,47.44,15.6,1,Rabi
+2026-05-25,grains,Tamil Nadu,995.36,183.09,13.33,29.5,0,Zaid
+2024-12-21,vegetables,Gujarat,562.49,91.58,38.12,24.1,0,Rabi
+2026-03-08,oilseeds,Maharashtra,1281.94,195.68,6.28,15.3,0,Rabi
+2026-04-18,grains,Tamil Nadu,1710.73,41.64,13.28,15.4,0,Zaid
+2025-12-26,dairy,Maharashtra,1659.71,113.23,17.4,22.4,0,Rabi
+2025-04-19,grains,Andhra Pradesh,1469.69,195.35,42.35,15.5,0,Zaid
+2025-05-24,grains,Delhi,1674.8,160.47,22.9,23.0,0,Zaid
+2025-03-02,pulses,Delhi,598.54,61.08,12.33,24.7,0,Rabi
+2026-07-30,oilseeds,Gujarat,1210.71,30.41,287.34,33.9,0,Kharif
+2025-11-15,dairy,Delhi,2980.49,118.01,48.14,16.5,1,Rabi
+2026-03-29,vegetables,Maharashtra,838.07,55.25,7.04,27.4,0,Rabi
+2025-04-29,fruits,Kerala,1367.45,46.45,40.56,27.7,0,Zaid
+2024-11-09,oilseeds,Tamil Nadu,2266.79,66.78,17.26,33.3,1,Rabi
+2025-01-26,spices,Gujarat,1308.22,30.91,34.5,28.8,0,Rabi
+2026-06-12,fruits,Andhra Pradesh,1245.97,61.45,13.37,23.3,0,Kharif
+2025-11-03,spices,Kerala,2462.45,83.77,47.45,34.2,1,Rabi
+2024-11-19,spices,Karnataka,2839.49,156.95,27.34,18.6,1,Rabi
+2026-07-23,oilseeds,Karnataka,1341.31,175.51,144.4,33.0,0,Kharif
+2025-06-06,pulses,Maharashtra,705.5,199.1,158.17,22.8,0,Kharif
+2025-04-02,pulses,Karnataka,663.34,134.58,24.91,23.1,0,Zaid
+2024-11-02,grains,Punjab,1925.71,59.44,22.95,33.4,1,Rabi
+2024-10-11,oilseeds,Tamil Nadu,1231.4,22.35,4.26,31.6,1,Kharif
+2024-11-27,dairy,Kerala,1548.84,145.7,19.76,34.1,1,Rabi
+2025-11-21,fruits,Tamil Nadu,1633.79,173.76,38.65,21.2,1,Rabi
+2025-03-17,spices,Maharashtra,1187.35,160.64,48.01,30.3,0,Rabi
+2025-03-31,dairy,Karnataka,1404.6,170.37,39.22,22.5,0,Rabi
+2025-12-12,pulses,Punjab,1707.13,28.29,40.4,18.6,0,Rabi
+2025-10-31,oilseeds,Delhi,2568.62,65.69,73.74,23.1,1,Kharif
+2025-08-01,pulses,Andhra Pradesh,751.0,182.25,46.14,34.8,1,Kharif
+2026-02-27,fruits,Kerala,1242.01,112.29,24.08,27.7,0,Rabi
+2026-04-29,pulses,Andhra Pradesh,548.93,30.39,22.22,20.5,0,Zaid
+2025-06-10,vegetables,Punjab,1988.66,89.54,172.15,23.3,0,Kharif
+2025-05-06,vegetables,Punjab,1853.35,177.92,48.72,15.6,0,Zaid
+2025-08-17,grains,Kerala,2441.49,61.16,286.9,18.0,1,Kharif
+2024-09-17,dairy,Maharashtra,1925.69,124.69,130.98,26.6,0,Kharif
+2026-01-29,grains,Gujarat,1638.16,70.85,17.65,32.9,0,Rabi
+2024-12-03,oilseeds,Punjab,1838.84,95.5,39.02,24.5,0,Rabi
+2025-02-21,oilseeds,Punjab,807.02,126.4,9.31,21.6,0,Rabi
+2025-04-05,oilseeds,Karnataka,810.61,32.81,3.45,33.8,0,Zaid
+2026-06-15,dairy,Maharashtra,1114.12,165.96,250.75,21.6,0,Kharif
+2025-11-10,fruits,Andhra Pradesh,2485.03,137.84,7.58,32.5,1,Rabi
+2026-04-25,oilseeds,Andhra Pradesh,923.71,96.54,1.88,17.6,0,Zaid
+2025-07-16,spices,Maharashtra,500.02,94.98,156.75,16.1,0,Kharif
+2026-01-23,fruits,Delhi,839.19,74.76,15.2,19.6,0,Rabi
+2024-09-10,grains,Karnataka,1594.02,194.03,67.29,28.3,0,Kharif
+2025-07-27,oilseeds,Maharashtra,1772.64,96.07,90.88,21.5,0,Kharif
+2025-05-10,vegetables,Delhi,1725.17,52.69,18.55,33.0,0,Zaid
+2026-01-04,spices,Gujarat,1977.29,155.76,19.66,26.8,0,Rabi
+2025-02-01,vegetables,Delhi,617.68,118.01,35.47,18.3,0,Rabi
+2025-12-13,oilseeds,Karnataka,1375.66,191.4,2.12,20.3,0,Rabi
+2026-06-20,pulses,Delhi,944.84,148.6,227.7,17.1,0,Kharif
+2026-07-16,vegetables,Tamil Nadu,1263.34,86.47,279.88,31.6,0,Kharif
+2026-07-01,oilseeds,Delhi,647.35,164.63,36.61,17.5,0,Kharif
+2025-09-09,dairy,Karnataka,1016.91,25.55,15.57,17.8,0,Kharif
+2026-02-21,spices,Karnataka,1497.72,48.32,5.94,30.3,0,Rabi
+2026-07-17,oilseeds,Andhra Pradesh,1920.64,109.33,114.16,18.3,0,Kharif
+2025-10-26,pulses,Punjab,786.14,160.79,37.31,31.0,1,Kharif
+2026-04-30,vegetables,Karnataka,1764.92,37.55,27.95,25.0,0,Zaid
+2025-05-20,spices,Maharashtra,1301.44,117.33,21.48,21.2,0,Zaid
+2026-03-25,spices,Delhi,768.88,164.0,27.64,22.9,0,Rabi
+2025-10-16,grains,Kerala,2696.92,48.31,92.94,20.8,1,Kharif
+2025-02-09,spices,Kerala,1252.27,32.76,15.64,33.7,0,Rabi
+2024-10-07,fruits,Delhi,2959.29,133.04,74.25,18.3,1,Kharif
+2026-03-04,vegetables,Maharashtra,529.69,90.32,9.57,23.2,0,Rabi
+2025-06-06,spices,Maharashtra,1145.81,178.04,181.65,19.9,0,Kharif
+2025-09-26,vegetables,Karnataka,625.88,80.02,203.26,16.4,0,Kharif
+2024-09-06,spices,Tamil Nadu,1072.16,196.77,235.46,29.7,0,Kharif
+2026-04-24,oilseeds,Karnataka,1671.49,161.35,30.06,34.8,0,Zaid
+2025-06-23,fruits,Tamil Nadu,1148.03,196.47,20.25,25.4,0,Kharif
+2025-05-05,vegetables,Punjab,1956.01,40.39,20.18,29.8,0,Zaid
+2026-01-06,fruits,Gujarat,1134.09,82.37,19.88,20.3,0,Rabi
+2024-09-29,fruits,Punjab,1224.56,68.34,86.24,28.1,0,Kharif
+2026-08-22,spices,Punjab,2108.18,33.86,22.68,34.0,1,Kharif
+2024-11-23,grains,Maharashtra,957.15,127.83,31.18,28.0,1,Rabi
+2026-04-22,spices,Andhra Pradesh,522.67,193.7,12.54,28.5,0,Zaid
+2026-04-19,vegetables,Delhi,1415.01,76.32,13.55,27.0,0,Zaid
+2025-10-17,dairy,Gujarat,2880.15,39.06,46.45,33.9,1,Kharif
+2024-12-18,spices,Kerala,1824.49,56.47,29.38,29.0,0,Rabi
+2026-05-04,vegetables,Andhra Pradesh,1112.23,22.77,29.15,20.1,0,Zaid
+2025-03-09,pulses,Kerala,1936.37,91.83,41.99,18.8,0,Rabi
+2026-01-08,spices,Delhi,1497.49,109.65,37.14,21.5,0,Rabi
+2026-05-13,pulses,Kerala,626.45,165.29,43.07,31.3,0,Zaid
+2025-12-31,grains,Maharashtra,1157.58,199.33,11.46,25.9,0,Rabi
+2024-11-08,vegetables,Punjab,2326.95,56.72,32.7,31.4,1,Rabi
+2025-10-12,oilseeds,Delhi,2800.92,25.31,106.79,15.3,1,Kharif
+2025-09-05,grains,Delhi,1866.75,83.87,127.43,19.3,0,Kharif
+2025-10-19,vegetables,Kerala,2088.31,87.0,99.91,32.7,1,Kharif
+2026-08-24,oilseeds,Kerala,1860.38,70.99,236.03,22.9,1,Kharif
+2025-05-29,spices,Maharashtra,880.04,197.78,14.57,30.4,0,Zaid
+2026-07-02,vegetables,Maharashtra,809.33,163.95,100.08,32.3,0,Kharif
+2025-09-23,vegetables,Karnataka,1789.74,26.3,236.21,23.2,0,Kharif
+2025-11-25,fruits,Kerala,2185.4,170.06,24.97,25.7,1,Rabi
+2025-03-05,grains,Andhra Pradesh,1675.98,95.49,25.0,30.7,0,Rabi
+2026-07-15,fruits,Maharashtra,801.65,126.24,122.29,24.4,0,Kharif
+2024-12-02,pulses,Gujarat,658.09,157.6,20.48,28.1,0,Rabi
+2026-02-24,vegetables,Karnataka,739.24,48.88,3.52,18.7,0,Rabi
+2024-11-29,dairy,Punjab,2733.8,166.54,34.26,17.2,1,Rabi
+2026-06-20,dairy,Maharashtra,964.71,64.99,154.5,25.7,0,Kharif
+2026-06-19,dairy,Andhra Pradesh,1030.68,169.14,236.79,21.2,0,Kharif
+2025-03-03,oilseeds,Delhi,1679.54,133.8,18.68,20.4,0,Rabi
+2024-10-01,vegetables,Maharashtra,980.78,90.69,166.01,25.1,1,Kharif
+2025-08-29,spices,Maharashtra,2682.34,141.85,251.37,32.2,1,Kharif
+2026-07-21,grains,Karnataka,1158.82,129.9,48.11,28.5,0,Kharif
+2026-02-01,dairy,Delhi,1540.92,61.33,5.88,18.3,0,Rabi
+2025-05-31,dairy,Punjab,1297.83,162.1,14.84,25.8,0,Zaid
+2025-03-30,spices,Maharashtra,1121.3,151.83,44.08,17.4,0,Rabi
+2025-05-25,oilseeds,Gujarat,1373.22,41.31,10.59,21.2,0,Zaid
+2024-10-26,oilseeds,Tamil Nadu,1298.39,68.17,100.7,30.0,1,Kharif
+2026-04-13,grains,Andhra Pradesh,1122.1,155.7,43.57,28.6,0,Zaid
+2026-08-24,oilseeds,Punjab,1136.31,110.02,123.59,32.4,1,Kharif
+2025-08-02,fruits,Andhra Pradesh,1948.13,40.77,181.69,17.3,1,Kharif
+2025-09-26,dairy,Tamil Nadu,714.26,144.57,61.88,22.8,0,Kharif
+2026-07-25,vegetables,Kerala,806.47,111.4,125.78,15.4,0,Kharif
+2024-09-13,vegetables,Kerala,603.57,105.37,168.2,27.6,0,Kharif
+2025-02-18,fruits,Gujarat,1822.35,151.64,34.86,30.1,0,Rabi
+2026-04-29,dairy,Maharashtra,1811.26,56.62,6.37,20.7,0,Zaid
+2025-09-25,oilseeds,Karnataka,1265.84,167.71,121.37,24.7,0,Kharif
+2025-11-13,grains,Andhra Pradesh,1671.91,136.6,0.78,20.6,1,Rabi
+2025-04-15,fruits,Delhi,562.98,106.27,9.09,29.9,0,Zaid
+2024-11-09,oilseeds,Gujarat,1977.57,196.71,22.52,25.3,1,Rabi
+2025-05-17,spices,Tamil Nadu,847.32,189.66,2.14,23.9,0,Zaid
+2025-11-23,grains,Karnataka,2390.78,129.51,35.33,22.5,1,Rabi
+2026-08-13,pulses,Gujarat,851.97,82.99,278.79,22.6,1,Kharif
+2025-09-13,fruits,Karnataka,1763.49,87.18,189.6,16.9,0,Kharif
+2026-03-12,oilseeds,Delhi,599.69,157.97,29.19,30.6,0,Rabi
+2026-01-13,dairy,Karnataka,1704.5,113.24,7.02,28.4,0,Rabi
+2025-08-27,pulses,Andhra Pradesh,1619.9,139.25,104.09,22.8,1,Kharif
+2025-01-16,fruits,Maharashtra,887.35,128.97,21.66,30.5,0,Rabi
+2024-11-02,fruits,Andhra Pradesh,1968.7,156.49,15.35,23.3,1,Rabi
+2024-12-02,grains,Karnataka,1079.32,125.93,9.27,27.0,0,Rabi
+2025-09-25,fruits,Karnataka,1802.96,150.38,223.73,26.2,0,Kharif
+2024-09-19,fruits,Punjab,700.48,99.89,135.23,34.2,0,Kharif
+2025-12-07,vegetables,Delhi,1324.01,115.99,31.84,30.0,0,Rabi
+2025-12-22,dairy,Maharashtra,1293.09,168.67,23.16,20.6,0,Rabi
+2026-03-13,grains,Gujarat,1735.65,31.37,38.84,31.4,0,Rabi
+2025-01-23,oilseeds,Tamil Nadu,781.58,35.91,34.95,22.4,0,Rabi
+2025-01-16,pulses,Delhi,546.72,66.72,1.68,32.6,0,Rabi
+2026-03-17,grains,Tamil Nadu,1336.01,27.02,33.34,21.5,0,Rabi
+2024-10-03,spices,Kerala,1906.95,152.52,130.93,28.3,1,Kharif
+2024-12-12,fruits,Punjab,1622.01,166.29,35.34,34.3,0,Rabi
+2026-07-19,grains,Gujarat,1854.64,188.04,240.4,28.5,0,Kharif
+2024-10-06,grains,Andhra Pradesh,1798.11,122.81,91.21,21.4,1,Kharif
+2025-02-27,grains,Gujarat,1837.57,172.85,20.3,15.3,0,Rabi
+2025-09-27,pulses,Delhi,968.29,22.83,5.14,33.3,0,Kharif
+2025-04-05,vegetables,Delhi,963.43,43.88,25.58,15.1,0,Zaid
+2026-05-21,grains,Delhi,1122.22,92.42,19.53,16.4,0,Zaid
+2025-01-05,dairy,Tamil Nadu,1599.51,141.7,6.92,26.6,0,Rabi
+2025-02-04,grains,Tamil Nadu,1892.27,187.25,17.1,25.6,0,Rabi
+2025-03-28,grains,Andhra Pradesh,1993.45,196.6,32.48,31.1,0,Rabi
+2025-04-17,pulses,Karnataka,1389.74,29.6,22.74,28.5,0,Zaid
+2026-06-14,oilseeds,Karnataka,1059.68,189.5,50.21,25.0,0,Kharif
+2026-04-05,vegetables,Kerala,1545.7,136.76,13.76,18.1,0,Zaid
+2024-09-03,oilseeds,Gujarat,1120.74,56.75,12.7,26.6,0,Kharif
+2024-11-07,vegetables,Andhra Pradesh,2884.67,30.91,34.27,15.5,1,Rabi
