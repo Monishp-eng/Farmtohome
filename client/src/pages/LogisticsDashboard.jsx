@@ -28,7 +28,6 @@ const createColorIcon = (color) => {
 };
 
 const farmIcon = createColorIcon('green');
-const warehouseIcon = createColorIcon('blue');
 const consumerIcon = createColorIcon('red');
 
 const truckIcon = new L.DivIcon({
@@ -59,10 +58,8 @@ const MapBounds = ({ deliveries }) => {
 };
 
 const LogisticsDashboard = () => {
-  const [activeTab, setActiveTab] = useState('all'); // 'all', 'farm_to_warehouse', 'warehouse_to_consumer'
-  const [deliveries, setDeliveries] = useState([]);
-  const [warehouses, setWarehouses] = useState([]);
-  const [loading, setLoading] = useState(true);
+    const [deliveries, setDeliveries] = useState([]);
+    const [loading, setLoading] = useState(true);
 
   // Multi-stop optimizer state
   const [optLoading, setOptLoading] = useState(false);
@@ -93,12 +90,8 @@ const LogisticsDashboard = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [delRes, whRes] = await Promise.all([
-        api.get('/logistics/my-deliveries'),
-        api.get('/logistics/warehouses').catch(() => ({ data: { data: [] } }))
-      ]);
+      const delRes = await api.get('/logistics/my-deliveries');
       setDeliveries(delRes.data.data || delRes.data || []);
-      setWarehouses(whRes.data.data || []);
     } catch (error) {
       toast.error('Failed to load logistics dispatches');
     } finally {
@@ -207,8 +200,8 @@ const LogisticsDashboard = () => {
   const runDriverRouteOptimization = async () => {
     setOptLoading(true);
     try {
-      // Koyambedu Central Warehouse Origin
-      const origin = { name: 'Chennai Central Agri-Hub (Koyambedu)', lat: 13.0694, lng: 80.1948 };
+      // Farm Gate Origin
+      const origin = { name: 'Direct Marketplace Origin', lat: 13.0694, lng: 80.1948 };
       
       const filtered = deliveries.filter(d => d.status !== 'delivered');
       const destinations = filtered.map((d, idx) => ({
@@ -236,16 +229,10 @@ const LogisticsDashboard = () => {
   };
 
   // Filtered deliveries based on Stage tab
-  const displayedDeliveries = deliveries.filter(d => {
-    if (activeTab === 'farm_to_warehouse') return d.stage === 'farm_to_warehouse';
-    if (activeTab === 'warehouse_to_consumer') return d.stage === 'warehouse_to_consumer';
-    return true;
-  });
+  const displayedDeliveries = deliveries;
 
   const activeCount = deliveries.filter(d => d.status !== 'delivered').length;
-  const stage1Count = deliveries.filter(d => d.stage === 'farm_to_warehouse' && d.status !== 'delivered').length;
-  const stage2Count = deliveries.filter(d => d.stage === 'warehouse_to_consumer' && d.status !== 'delivered').length;
-
+    
   // Performance Metrics
   const totalDeliveries = deliveries.length;
   const completedToday = deliveries.filter(d => d.status === 'delivered').length;
@@ -263,13 +250,13 @@ const LogisticsDashboard = () => {
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <div className="inline-flex items-center gap-1.5 bg-amber-400/20 text-amber-300 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-2 border border-amber-400/30">
-              <Building2 size={13} /> 2-Stage Hub-and-Spoke Logistics (Chennai Zone)
+              <Building2 size={13} /> Direct Farm-to-Doorstep Logistics (Chennai Zone)
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-              Logistics & Aggregation Dispatch Center
+              Direct Delivery Dispatch Center
             </h1>
             <p className="text-indigo-200 text-xs sm:text-sm mt-1 max-w-2xl">
-              Stage 1: Farm Gate ➔ Regional Warehouse (Intake & Passbook Verification) | Stage 2: Warehouse ➔ Consumer Doorstep (Last-Mile).
+              Farm Location ➔ Consumer Doorstep
             </p>
           </div>
 
@@ -280,29 +267,6 @@ const LogisticsDashboard = () => {
             <RefreshCw size={14} /> Refresh Dispatches
           </button>
         </div>
-      </div>
-
-      {/* Chennai Warehouse Status Strip */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {warehouses.map((wh, idx) => (
-          <div key={wh.id || idx} className="bg-white rounded-2xl p-4 border border-indigo-100 shadow-sm flex items-start gap-3">
-            <div className="p-3 bg-indigo-50 text-indigo-700 rounded-xl">
-              <Building2 size={20} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex justify-between items-center">
-                <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider font-mono">{wh.code}</span>
-                <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">Active Hub</span>
-              </div>
-              <h4 className="font-extrabold text-sm text-gray-900 truncate mt-0.5">{wh.name}</h4>
-              <p className="text-[11px] text-gray-500 truncate">{wh.address}</p>
-              <div className="mt-2 flex justify-between text-[11px] text-gray-600 bg-gray-50 px-2 py-1 rounded-lg">
-                <span>Capacity: <strong>{wh.capacity_tonnes}T</strong></span>
-                <span>Occupancy: <strong className="text-emerald-700">{wh.current_occupancy_kg} kg</strong></span>
-              </div>
-            </div>
-          </div>
-        ))}
       </div>
 
       {/* Driver Performance Scorecard Strip */}
@@ -330,7 +294,7 @@ const LogisticsDashboard = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-1 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
           <div className="p-3 bg-amber-50 text-amber-700 rounded-2xl">
             <Layers size={24} />
@@ -340,62 +304,13 @@ const LogisticsDashboard = () => {
             <h3 className="text-2xl font-black text-gray-900">{activeCount}</h3>
           </div>
         </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-emerald-50 text-emerald-700 rounded-2xl">
-            <Package size={24} />
-          </div>
-          <div>
-            <span className="text-xs text-gray-500 font-bold uppercase">Stage 1: Farm ➔ Warehouse</span>
-            <h3 className="text-2xl font-black text-emerald-800">{stage1Count} Pending</h3>
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-blue-50 text-blue-700 rounded-2xl">
-            <Truck size={24} />
-          </div>
-          <div>
-            <span className="text-xs text-gray-500 font-bold uppercase">Stage 2: Warehouse ➔ Doorstep</span>
-            <h3 className="text-2xl font-black text-blue-800">{stage2Count} Pending</h3>
-          </div>
-        </div>
       </div>
-
-      {/* Main Content: Tabs + Map & Dispatch Table */}
+{/* Main Content: Tabs + Map & Dispatch Table */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
         {/* Left Side: Dispatch List (7 cols) */}
         <div className="lg:col-span-7 space-y-4">
           
-          {/* Stage Filter Tabs */}
-          <div className="flex gap-2 bg-gray-100 p-1.5 rounded-2xl">
-            <button
-              onClick={() => setActiveTab('all')}
-              className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs transition-all ${
-                activeTab === 'all' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              All ({deliveries.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('farm_to_warehouse')}
-              className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5 ${
-                activeTab === 'farm_to_warehouse' ? 'bg-white text-emerald-800 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              🚜 Stage 1: Farm ➔ Hub
-            </button>
-            <button
-              onClick={() => setActiveTab('warehouse_to_consumer')}
-              className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5 ${
-                activeTab === 'warehouse_to_consumer' ? 'bg-white text-blue-800 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              🚚 Stage 2: Hub ➔ Consumer
-            </button>
-          </div>
-
           {/* Delivery Task Cards */}
           {loading ? (
             <div className="p-8 text-center text-gray-400 font-bold">Loading logistics tasks...</div>
@@ -407,17 +322,13 @@ const LogisticsDashboard = () => {
           ) : (
             <div className="space-y-3">
               {displayedDeliveries.map((del) => {
-                const isStage1 = del.stage === 'farm_to_warehouse';
+                
                 const id = del.id || del._id;
                 return (
                   <div key={id} className="bg-white rounded-2xl p-4 border border-gray-200 hover:border-indigo-300 shadow-sm transition-all space-y-3">
                     <div className="flex justify-between items-start">
                       <div className="flex items-center gap-2">
-                        <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full ${
-                          isStage1 ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'
-                        }`}>
-                          {isStage1 ? '🚜 Stage 1: Farm Intake' : '🚚 Stage 2: Doorstep Delivery'}
-                        </span>
+                        <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">🚜 Direct Farm Delivery</span>
                         <span className="text-xs font-mono font-bold text-gray-400">#{id}</span>
                       </div>
 
@@ -444,7 +355,7 @@ const LogisticsDashboard = () => {
                     </div>
 
                     {/* Stage 1: Farmer Contact & Method 4 Passbook Verification */}
-                    {isStage1 ? (
+                    
                       <div className="bg-emerald-50/80 p-2.5 rounded-2xl border border-emerald-200/80 text-xs space-y-2">
                         <div className="flex justify-between items-center">
                           <div className="flex items-center gap-1.5 text-emerald-950 font-bold">
@@ -482,7 +393,7 @@ const LogisticsDashboard = () => {
                           </button>
                         </div>
                       </div>
-                    ) : (
+                    \n
                       /* Stage 2: Buyer Contact */
                       <div className="bg-blue-50/80 p-2.5 rounded-2xl border border-blue-200/80 text-xs flex justify-between items-center">
                         <div className="text-blue-950 font-medium">
@@ -495,7 +406,7 @@ const LogisticsDashboard = () => {
                           <Phone size={12} /> Call Consumer ({del.buyer_phone || '+91 98765 43210'})
                         </a>
                       </div>
-                    )}
+                    
 
                     {/* Pickup -> Dropoff Path */}
                     <div className="bg-gray-50 p-2.5 rounded-xl text-xs space-y-1.5 border border-gray-100">
@@ -505,7 +416,7 @@ const LogisticsDashboard = () => {
                       </div>
                       <div className="flex items-center gap-2 text-gray-700 border-t border-gray-200/60 pt-1">
                         <MapPin size={13} className="text-red-600 flex-shrink-0" />
-                        <span className="font-semibold truncate"><strong>To:</strong> {del.delivery_location || 'Chennai Central Warehouse'}</span>
+                        <span className="font-semibold truncate"><strong>To:</strong> {del.delivery_location || 'Consumer Doorstep'}</span>
                       </div>
                     </div>
 
@@ -558,9 +469,9 @@ const LogisticsDashboard = () => {
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="font-black text-sm text-gray-900 flex items-center gap-1.5">
-                  <Navigation size={16} className="text-indigo-600" /> Chennai Hub GIS Map
+                  <Navigation size={16} className="text-indigo-600" /> Direct Delivery GIS Map
                 </h3>
-                <p className="text-[11px] text-gray-400">Green = Farm Gate | Blue = Chennai Hub | Red = Consumer</p>
+                <p className="text-[11px] text-gray-400">Green = Farm Gate | Red = Consumer</p>
               </div>
 
               <button
@@ -578,30 +489,20 @@ const LogisticsDashboard = () => {
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                 <MapBounds deliveries={displayedDeliveries} />
 
-                {/* Chennai Warehouses Markers */}
-                {warehouses.map(wh => (
-                  <Marker key={`wh-${wh.id}`} position={[wh.latitude, wh.longitude]} icon={warehouseIcon}>
-                    <Popup>
-                      <strong>🏢 {wh.name}</strong><br />
-                      {wh.address}
-                    </Popup>
-                  </Marker>
-                ))}
-
                 {/* Delivery Pickups and Drops */}
                 {displayedDeliveries.map(del => {
                   const id = del.id || del._id;
                   return (
                   <React.Fragment key={`map-del-${id}`}>
                     {del.pickup_lat && del.pickup_lng && (
-                      <Marker position={[del.pickup_lat, del.pickup_lng]} icon={del.stage === 'farm_to_warehouse' ? farmIcon : warehouseIcon}>
+                      <Marker position={[del.pickup_lat, del.pickup_lng]} icon={farmIcon}>
                         <Popup>
                           <strong>Origin:</strong> {del.pickup_location}
                         </Popup>
                       </Marker>
                     )}
                     {del.delivery_lat && del.delivery_lng && (
-                      <Marker position={[del.delivery_lat, del.delivery_lng]} icon={del.stage === 'farm_to_warehouse' ? warehouseIcon : consumerIcon}>
+                      <Marker position={[del.delivery_lat, del.delivery_lng]} icon={consumerIcon}>
                         <Popup>
                           <strong>Destination:</strong> {del.delivery_location}
                         </Popup>
@@ -610,13 +511,12 @@ const LogisticsDashboard = () => {
                     {del.pickup_lat && del.pickup_lng && del.delivery_lat && del.delivery_lng && (
                       <Polyline
                         positions={[[del.pickup_lat, del.pickup_lng], [del.delivery_lat, del.delivery_lng]]}
-                        color={del.stage === 'farm_to_warehouse' ? '#059669' : '#2563eb'}
+                        color={'#059669'}
                         dashArray="6, 6"
                       />
                     )}
                   </React.Fragment>
                 )})}
-                
                 {/* Animated Truck Marker */}
                 {truckPosition && (
                   <Marker position={truckPosition} icon={truckIcon} zIndexOffset={1000} />

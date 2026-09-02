@@ -291,7 +291,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* 4. Core Pillars: 2G Dialphone, Chennai Hub Logistics, AI Agri-Doctor */}
+      {/* 4. Core Pillars: 2G Dialphone, Direct Farm Logistics, AI Agri-Doctor */}
       <section className="py-16 bg-white border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-10">
@@ -299,7 +299,7 @@ const Home = () => {
               Three Pillars of Agricultural Disruption
             </h2>
             <p className="text-xs sm:text-sm text-gray-500 mt-2">
-              Combining 2G telecom accessibility, regional cold-chain fulfillment, and generative AI.
+              Combining 2G telecom accessibility, direct farm-to-doorstep delivery, and generative AI.
             </p>
           </div>
 
@@ -325,15 +325,15 @@ const Home = () => {
               </div>
             </div>
 
-            {/* Card 2: Chennai Hub Logistics */}
+            {/* Card 2: Direct Farm Logistics */}
             <div className="bg-gradient-to-br from-indigo-900 to-slate-950 text-white rounded-3xl p-6 sm:p-7 shadow-xl flex flex-col justify-between relative overflow-hidden border border-indigo-800/50">
               <div className="space-y-3 relative z-10">
                 <div className="inline-flex items-center gap-1.5 bg-indigo-500/30 text-indigo-200 px-3 py-1 rounded-full text-xs font-bold border border-indigo-400/30">
-                  <Truck size={13} /> Chennai Agri-Hubs
+                  <Truck size={13} /> Farm Network
                 </div>
-                <h3 className="text-xl font-black">2-Stage Hub Logistics</h3>
+                <h3 className="text-xl font-black">Direct Farm-to-Doorstep Delivery</h3>
                 <p className="text-indigo-200 text-xs leading-relaxed">
-                  Stage 1 Farm Gate intake to <strong>Koyambedu Central Hub</strong> & Stage 2 doorstep delivery via 2-Opt TSP routing.
+                  Stage 1 Farm Gate intake to <strong>Direct Farm Pickup</strong> & Stage 2 doorstep delivery via 2-Opt TSP routing.
                 </p>
               </div>
               <div className="pt-6 relative z-10">

@@ -199,6 +199,77 @@ const ProductForm = ({ onSubmit, initialData = null, isLoading = false }) => {
           />
         </div>
 
+        {/* Harvest Date & Freshness / Availability Window */}
+        <div className="md:col-span-2 bg-gradient-to-br from-emerald-50 to-teal-50/70 p-4 rounded-2xl border border-emerald-300 shadow-xs space-y-3">
+          <div className="flex justify-between items-center">
+            <span className="font-black text-xs text-emerald-950 flex items-center gap-1.5">
+              <Clock size={15} className="text-emerald-700" />
+              Direct Freshness Window & Availability Promise
+            </span>
+            <span className="text-[10px] text-emerald-800 font-bold bg-emerald-200/70 px-2 py-0.5 rounded-full">
+              Nearest Buyers Matched First
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1">Harvest Date *</label>
+              <input
+                type="date"
+                name="harvest_date"
+                required
+                value={formData.harvest_date}
+                onChange={handleChange}
+                className="w-full px-3.5 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary font-bold text-xs bg-white"
+              />
+              <span className="text-[10px] text-gray-400 mt-0.5 block">When was this produce plucked/harvested?</span>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1">Fresh & Available Until (Expiry Date) *</label>
+              <input
+                type="date"
+                name="expiry_date"
+                required
+                value={formData.expiry_date || ''}
+                onChange={handleChange}
+                className="w-full px-3.5 py-2 border border-emerald-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary font-bold text-xs bg-white text-emerald-900"
+              />
+              <span className="text-[10px] text-emerald-700 font-medium mt-0.5 block">Last date this product stays 100% fresh for consumption</span>
+            </div>
+          </div>
+
+          {/* Quick Preset Chips */}
+          <div>
+            <span className="text-[10px] text-gray-500 font-bold uppercase block mb-1">Quick Select Freshness Duration:</span>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { label: '⚡ +2 Days (Leafy / Milk)', days: 2 },
+                { label: '🌿 +4 Days (Tomatoes / Veggies)', days: 4 },
+                { label: '🍎 +7 Days (Fruits / Bananas)', days: 7 },
+                { label: '🧅 +14 Days (Onion / Potato)', days: 14 },
+                { label: '🌾 +180 Days (Grains / Pulses)', days: 180 }
+              ].map(preset => (
+                <button
+                  key={preset.days}
+                  type="button"
+                  onClick={() => {
+                    const hDate = new Date(formData.harvest_date || new Date());
+                    const exp = new Date(hDate.getTime() + preset.days * 24 * 60 * 60 * 1000);
+                    setFormData(prev => ({
+                      ...prev,
+                      expiry_date: exp.toISOString().split('T')[0]
+                    }));
+                  }}
+                  className="px-2.5 py-1 bg-white hover:bg-emerald-100 border border-emerald-300 rounded-lg text-[11px] font-bold text-emerald-900 transition-colors shadow-2xs"
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Quality Grade & Delivery Speed */}
         <div>
           <label className="block text-xs font-bold text-gray-700 mb-1">Quality Grade</label>
@@ -222,8 +293,8 @@ const ProductForm = ({ onSubmit, initialData = null, isLoading = false }) => {
             onChange={handleChange}
             className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary font-bold text-xs bg-white"
           >
-            <option value="express_24h">⚡ Express Next-Day Dispatch (24 Hours)</option>
-            <option value="standard_48h">🚚 Standard Farm Transit (24–48 Hours)</option>
+            <option value="express_24h">⚡ Express Direct Dispatch (Within 24 Hours)</option>
+            <option value="standard_48h">🚚 Standard Direct Farm Transit (24–48 Hours)</option>
             <option value="scheduled_weekly">📅 Scheduled Bulk Contract (Weekly / Monthly)</option>
           </select>
         </div>

@@ -98,7 +98,7 @@ const Navbar = () => {
               /* 2. If LOGISTICS DRIVER role */
               <>
                 <Link to="/logistics/dashboard" className="hover:text-amber-300 transition-colors py-1 flex items-center gap-1">
-                  <Truck size={14} className="text-blue-300" /> Chennai Hub Dispatches
+                  <Truck size={14} className="text-blue-300" /> Active Deliveries
                 </Link>
                 <Link to="/ai-insights" className="hover:text-amber-300 transition-colors py-1 flex items-center gap-1">
                   <MapPin size={14} /> 2-Opt Route Optimizer
@@ -115,7 +115,7 @@ const Navbar = () => {
                   <Building2 size={13} className="text-purple-300" /> Bulk Wholesale
                 </Link>
                 <Link to="/logistics/dashboard" className="hover:text-amber-300 transition-colors py-1 flex items-center gap-1">
-                  <Truck size={13} className="text-emerald-300" /> Chennai Hubs
+                  <Truck size={13} className="text-emerald-300" /> Logistics
                 </Link>
                 <Link to="/agri-doctor" className="hover:text-amber-300 transition-colors py-1 flex items-center gap-1 text-emerald-300">
                   <Stethoscope size={14} /> Agri-Doctor

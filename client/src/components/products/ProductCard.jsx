@@ -153,7 +153,7 @@ const ProductCard = ({ product, buyerPersona = 'consumer' }) => {
         product_id: product.id || product._id,
         quantity_kg: selectedQty,
         order_type: buyerPersona === 'bulk' ? 'bulk_contract' : 'individual',
-        delivery_address: user.location || 'Bangalore Delivery Hub'
+        delivery_address: user.location || 'Bangalore Direct'
       });
       const orderId = res.data.data?.orderId || res.data.data?.id;
       toast.success(`Order #${orderId} Placed! Farmer notified via SMS.`);
@@ -172,9 +172,23 @@ const ProductCard = ({ product, buyerPersona = 'consumer' }) => {
       
       {/* Top Floating Badges */}
       <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
-        <span className="bg-emerald-800 text-white text-[10px] px-2.5 py-0.5 rounded-full font-black flex items-center gap-1 shadow-md">
-          <ShieldCheck size={11} className="text-amber-300" /> Kisan Assured
-        </span>
+        {product.freshness?.is_urgent_deal ? (
+          <span className="bg-amber-600 text-white text-[10px] px-2.5 py-0.5 rounded-full font-black flex items-center gap-1 shadow-md animate-pulse">
+            <Zap size={10} className="text-yellow-200 fill-yellow-200" /> ⚡ Urgent Fresh Deal ({product.freshness.hours_remaining}h left)
+          </span>
+        ) : product.freshness?.is_harvested_today ? (
+          <span className="bg-emerald-700 text-white text-[10px] px-2.5 py-0.5 rounded-full font-black flex items-center gap-1 shadow-md">
+            <Sparkles size={10} className="text-amber-300" /> 🌿 Harvested Today (100% Fresh)
+          </span>
+        ) : product.freshness?.expiry_date || product.expiry_date ? (
+          <span className="bg-teal-800 text-white text-[10px] px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 shadow-sm">
+            <ShieldCheck size={10} className="text-teal-200" /> 🌿 Fresh till {product.freshness?.expiry_date || product.expiry_date}
+          </span>
+        ) : (
+          <span className="bg-emerald-800 text-white text-[10px] px-2.5 py-0.5 rounded-full font-black flex items-center gap-1 shadow-md">
+            <ShieldCheck size={11} className="text-amber-300" /> Kisan Assured
+          </span>
+        )}
         {product.is_organic ? (
           <span className="bg-emerald-600 text-white text-[10px] px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 shadow-sm">
             <Leaf size={10} /> 100% Organic
@@ -204,15 +218,15 @@ const ProductCard = ({ product, buyerPersona = 'consumer' }) => {
             {getCategoryEmoji(category)}
           </div>
 
-          {/* Delivery Window & Distance Strip */}
+          {/* Delivery Window & Nearest Distance Strip */}
           <div className="absolute bottom-2 left-3 right-3 flex justify-between items-center text-[10px] text-gray-600 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-xl border border-white/60 shadow-xs z-10">
             <span className="font-bold text-emerald-800 flex items-center gap-1">
               <Zap size={11} className="text-amber-500 fill-amber-400" />
-              {product.delivery_window === 'express_24h' ? '⚡ Next-Day 24h Delivery' : '🚚 24-48h Farm Transit'}
+              Direct Transit: ~{product.estimated_transit_hours || 2}h
             </span>
-            <span className="font-semibold text-gray-500 flex items-center gap-0.5">
+            <span className="font-black text-gray-700 flex items-center gap-0.5 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
               <MapPin size={10} className="text-primary" />
-              {product.distance_km ? `${product.distance_km} km` : (product.farmer_location || 'Salem')}
+              {product.distance_km ? `${product.distance_km} km (Nearest)` : (product.farmer_location || 'Salem')}
             </span>
           </div>
         </div>
@@ -221,7 +235,7 @@ const ProductCard = ({ product, buyerPersona = 'consumer' }) => {
       {/* Card Content Body */}
       <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-3">
         <div>
-          {/* Rating & Quality Grade Row */}
+          {/* Rating & Smart Match Score Row */}
           <div className="flex justify-between items-center text-xs">
             <div className="flex items-center gap-1 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg text-amber-900 font-bold">
               <Star size={12} className="text-amber-500 fill-amber-400" />
@@ -229,9 +243,16 @@ const ProductCard = ({ product, buyerPersona = 'consumer' }) => {
               <span className="text-[10px] text-gray-400 font-normal">(120+ orders)</span>
             </div>
 
-            <span className="bg-slate-100 text-slate-800 text-[10px] px-2 py-0.5 rounded-md font-bold border border-slate-200">
-              Grade {product.quality_grade || 'A'}
-            </span>
+            <div className="flex items-center gap-1">
+              {product.smart_match_score ? (
+                <span className="bg-emerald-100 text-emerald-900 text-[10px] px-2 py-0.5 rounded-md font-black border border-emerald-300 flex items-center gap-0.5">
+                  <Sparkles size={9} className="text-emerald-700" /> {product.smart_match_score}% Match
+                </span>
+              ) : null}
+              <span className="bg-slate-100 text-slate-800 text-[10px] px-2 py-0.5 rounded-md font-bold border border-slate-200">
+                Grade {product.quality_grade || 'A'}
+              </span>
+            </div>
           </div>
 
           {/* Product Title */}
@@ -247,6 +268,16 @@ const ProductCard = ({ product, buyerPersona = 'consumer' }) => {
             <span>•</span>
             <span className="text-emerald-700 font-medium">{product.farmer_location || 'Salem'}, {product.farmer_state || 'Tamil Nadu'}</span>
           </p>
+
+          {/* Freshness Window Indicator Badge Bar */}
+          <div className="mt-2 flex items-center justify-between text-[11px] bg-emerald-50/80 border border-emerald-200 px-2.5 py-1.5 rounded-xl text-emerald-950">
+            <span className="font-bold flex items-center gap-1 text-emerald-800">
+              🌿 {product.freshness?.badge_text || `Fresh for ${product.freshness?.days_remaining || 4} days`}
+            </span>
+            <span className="text-[10px] text-gray-500">
+              Harvest: {product.freshness?.harvest_date || 'Today'}
+            </span>
+          </div>
 
           {/* Stock Badges */}
           <div className="mt-1">
@@ -278,7 +309,7 @@ const ProductCard = ({ product, buyerPersona = 'consumer' }) => {
           <div className="mt-2 p-2 bg-emerald-50/60 rounded-xl border border-emerald-200/80 text-[11px] space-y-0.5">
             <div className="flex justify-between text-indigo-900 font-medium">
               <span>Fulfillment:</span>
-              <strong className="text-indigo-800 font-semibold">🏢 Chennai Agri-Hub</strong>
+              <strong className="text-indigo-800 font-semibold">🏡 Direct from Farm Gate</strong>
             </div>
             <div className="flex justify-between text-emerald-800 font-extrabold border-t border-emerald-200/60 pt-0.5">
               <span>Farmer Share:</span>

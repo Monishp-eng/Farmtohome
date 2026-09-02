@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const { 
-  getWarehouses,
   assignDelivery, 
   getMyDeliveries, 
   verifyFarmerBank,
@@ -10,7 +9,6 @@ const {
 } = require('../controllers/logistics.controller');
 const { authenticateToken, authorizeRoles, optionalAuth } = require('../middleware/auth');
 
-router.get('/warehouses', optionalAuth, getWarehouses);
 router.post('/assign', authenticateToken, authorizeRoles('admin', 'logistics'), assignDelivery);
 router.get('/my-deliveries', authenticateToken, authorizeRoles('logistics', 'admin', 'driver'), getMyDeliveries);
 router.post('/verify-farmer-bank', authenticateToken, authorizeRoles('logistics', 'admin', 'driver'), verifyFarmerBank);

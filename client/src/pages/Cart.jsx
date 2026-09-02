@@ -40,7 +40,7 @@ const Cart = () => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        const gpsAddr = `Doorstep GPS (${latitude.toFixed(4)}, ${longitude.toFixed(4)}), Chennai Delivery Hub Area, Tamil Nadu`;
+        const gpsAddr = `Doorstep GPS (${latitude.toFixed(4)}, ${longitude.toFixed(4)}), Chennai City, Tamil Nadu`;
         setDeliveryAddress(gpsAddr);
         setIsLocating(false);
         toast.success('📍 Live GPS coordinates captured for delivery!');
@@ -361,7 +361,7 @@ const Cart = () => {
 
                 {/* Quick Presets */}
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-400 mb-1">Quick Select Hub / City:</label>
+                  <label className="block text-[10px] font-bold text-gray-400 mb-1">Quick Select Delivery Area:</label>
                   <div className="flex flex-wrap gap-1.5">
                     {addressPresets.map((p, idx) => (
                       <button

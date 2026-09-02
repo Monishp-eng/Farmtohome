@@ -42,3 +42,5 @@ server/public/audio/*.wav
 # Misc
 .cache/
 coverage/
+scratch/
+~$*

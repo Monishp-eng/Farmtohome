@@ -186,7 +186,7 @@ const DialphoneGateway = () => {
 
       if (data.listing) {
         setCallListingResult(data.listing);
-        toast.success(`Published! ID #${data.listing.id} scheduled for Chennai Koyambedu Hub.`);
+        toast.success(`Published! ID #${data.listing.id} scheduled for Marketplace.`);
         fetchLogs();
       }
     } catch (err) {
@@ -241,7 +241,7 @@ const DialphoneGateway = () => {
               2G Voice AI & Telecom Gateway
             </h1>
             <p className="text-emerald-200 text-xs sm:text-sm mt-1 max-w-2xl">
-              Empowering farmers with ₹0 airtime and a ₹1,000 feature phone to list produce via Sarvam AI Voice, schedule Chennai Warehouse pickup, and get paid 98% directly.
+              Empowering farmers with ₹0 airtime and a ₹1,000 feature phone to list produce via Sarvam AI Voice, listing published on marketplace, and get paid 98% directly.
             </p>
           </div>
 
@@ -332,7 +332,7 @@ const DialphoneGateway = () => {
               </li>
               <li className="flex items-start gap-2">
                 <span className="bg-amber-400 text-slate-950 font-black w-5 h-5 rounded-full flex items-center justify-center text-[10px] flex-shrink-0 mt-0.5">4</span>
-                <span><strong>Sarvam AI Verification:</strong> AI speaks back confirmation & assigns pickup to <strong>Chennai Koyambedu Agri-Hub</strong>!</span>
+                <span><strong>Sarvam AI Verification:</strong> AI speaks back confirmation & assigns pickup to <strong>Marketplace</strong>!</span>
               </li>
             </ol>
           </div>
@@ -550,7 +550,7 @@ const DialphoneGateway = () => {
                   <div>Price: <strong>₹{callListingResult.price_per_kg}/kg</strong></div>
                 </div>
                 <div className="text-[11px] text-emerald-800 font-semibold">
-                  🏢 Scheduled for First-Mile Intake at <strong>Chennai Central Agri-Hub (Koyambedu)</strong>
+                  🏢 Scheduled for Listed on Marketplace at <strong>Direct Marketplace</strong>
                 </div>
                 <Link
                   to="/marketplace"

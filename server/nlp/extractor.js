@@ -314,7 +314,62 @@ JSON Schema: { name, location, crop, category, quantity, unit, expected_price, i
       }
     }
 
-    // 6. Organic indicator
+    // 6. Freshness Window / Availability Duration (Days)
+    // Matches: "fresh for 3 days", "3 நாட்கள்", "3 din", "3 days", "valid 4 days", "till 5 days"
+    const freshMatch = lower.match(/(\d+)\s*(days?|naal|natkal|din|நாட்கள்|நாள்|दिन|दिवस)/i) ||
+                       lower.match(/(fresh|ப்ரெஷ்|ताज़ा|ताजा)\s*(?:for|till)?\s*(\d+)/i);
+    if (freshMatch) {
+      const days = parseInt(freshMatch[1] || freshMatch[2], 10);
+      if (days > 0 && days <= 365) {
+        result.freshness_days = days;
+      }
+    }
+
+    // Default intelligent freshness shelf-life per crop category if not specified
+    const shelfLifeDefaults = {
+      'Tomato': 4,
+      'Onion': 14,
+      'Potato': 20,
+      'Cabbage': 4,
+      'Cauliflower': 4,
+      'Brinjal': 4,
+      'Green Chilli': 6,
+      'Mango Alphonso': 6,
+      'Banana': 5,
+      'Guava': 4,
+      'Pomegranate': 10,
+      'Grapes': 5,
+      'Papaya': 4,
+      'Strawberry': 3,
+      'Fresh Milk': 2,
+      'Paneer': 3,
+      'Basmati Rice': 180,
+      'Wheat': 180,
+      'Paddy': 180,
+      'Toor Dal': 180,
+      'Moong Dal': 180,
+      'Chana Dal': 180,
+      'Mustard Seeds': 180,
+      'Groundnut': 90,
+      'Soybean': 180,
+      'Turmeric': 365,
+      'Black Pepper': 365,
+      'Cardamom': 365,
+      'Cinnamon': 365,
+      'Cloves': 365,
+      'Ghee': 180
+    };
+
+    if (!result.freshness_days) {
+      result.freshness_days = shelfLifeDefaults[result.crop] || (result.category === 'vegetables' ? 4 : result.category === 'fruits' ? 5 : result.category === 'dairy' ? 2 : 90);
+    }
+
+    const todayObj = new Date();
+    result.harvest_date = todayObj.toISOString().split('T')[0];
+    const expiryObj = new Date(todayObj.getTime() + result.freshness_days * 24 * 60 * 60 * 1000);
+    result.expiry_date = expiryObj.toISOString().split('T')[0];
+
+    // 7. Organic indicator
     if (/organic|இயற்கை|जैविक|bio/i.test(lower)) {
       result.is_organic = true;
     }

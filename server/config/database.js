@@ -100,42 +100,10 @@ class DatabaseWrapper {
     `);
 
     this.db.run(`
-      CREATE TABLE IF NOT EXISTS warehouses (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        code TEXT UNIQUE NOT NULL,
-        city TEXT NOT NULL DEFAULT 'Chennai',
-        address TEXT NOT NULL,
-        latitude REAL NOT NULL,
-        longitude REAL NOT NULL,
-        capacity_tonnes REAL DEFAULT 50,
-        current_occupancy_kg REAL DEFAULT 0,
-        contact_phone TEXT DEFAULT '+91-44-2479-1100',
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-    // Seed default Chennai Hubs if empty
-    try {
-      const wCount = this.db.prepare('SELECT COUNT(*) as count FROM warehouses').get();
-      if (!wCount || wCount.count === 0) {
-        this.db.run(`
-          INSERT INTO warehouses (name, code, city, address, latitude, longitude, capacity_tonnes, current_occupancy_kg, contact_phone)
-          VALUES 
-          ('Chennai Central Agri-Hub', 'MAA-CENTRAL-01', 'Chennai', 'Koyambedu Wholesale Market Complex, Chennai, Tamil Nadu 600092', 13.0694, 80.1948, 100, 4500, '+91-44-2479-1100'),
-          ('Chennai South Cold-Chain Hub', 'MAA-SOUTH-02', 'Chennai', 'SIDCO Industrial Estate, Guindy, Chennai, Tamil Nadu 600032', 13.0067, 80.2025, 60, 2800, '+91-44-2250-2200'),
-          ('Chennai North Aggregation Hub', 'MAA-NORTH-03', 'Chennai', 'Madhavaram Logistics Park, Chennai, Tamil Nadu 600060', 13.1487, 80.2312, 80, 3100, '+91-44-2553-3300')
-        `);
-      }
-    } catch(e) {}
-
-    this.db.run(`
       CREATE TABLE IF NOT EXISTS logistics (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         order_id INTEGER REFERENCES orders(id),
         product_id INTEGER REFERENCES products(id),
-        stage TEXT DEFAULT 'farm_to_warehouse' CHECK(stage IN ('farm_to_warehouse','warehouse_to_consumer')),
-        warehouse_id INTEGER REFERENCES warehouses(id),
         driver_id INTEGER REFERENCES users(id),
         pickup_location TEXT,
         pickup_lat REAL,

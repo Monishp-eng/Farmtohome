@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, Filter, SlidersHorizontal, Leaf, Sparkles, MapPin, ArrowUpDown, X, ShoppingBag, Building2, User, Award, TrendingUp, DollarSign, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Search, Filter, SlidersHorizontal, Leaf, Sparkles, MapPin, ArrowUpDown, X, ShoppingBag, Building2, User, Award, TrendingUp, DollarSign, ShieldCheck, CheckCircle2, Clock, Zap, Navigation } from 'lucide-react';
 import ProductCard from '../components/products/ProductCard';
 import Button from '../components/common/Button';
 import api from '../api/axios';
@@ -15,7 +15,16 @@ const Marketplace = ({ defaultPersona }) => {
   const [showFilters, setShowFilters] = useState(false);
   const [resultCount, setResultCount] = useState(0);
   const [buyerPersona, setBuyerPersona] = useState(initialPersona); // 'consumer' or 'bulk'
-  const [sortBy, setSortBy] = useState('newest');
+  const [sortBy, setSortBy] = useState('smart_match');
+  const [freshnessTab, setFreshnessTab] = useState('all'); // 'all', 'smart', 'today', 'nearby', 'urgent'
+  const [metaStats, setMetaStats] = useState(null);
+
+  // Delivery Location Preset for Proximity Calculation
+  const [deliveryLocation, setDeliveryLocation] = useState({
+    name: 'Chennai City',
+    lat: 13.0827,
+    lng: 80.2707
+  });
 
   const [filters, setFilters] = useState({
     search: '',
@@ -25,10 +34,20 @@ const Marketplace = ({ defaultPersona }) => {
     isOrganic: false,
     qualityGrade: 'All',
     location: 'All',
+    maxDistance: '',
     minQuantity: initialPersona === 'bulk' ? '50' : ''
   });
 
   const [debouncedSearch, setDebouncedSearch] = useState(filters.search);
+
+  const presetLocations = [
+    { name: 'Chennai City', lat: 13.0827, lng: 80.2707 },
+    { name: 'Bangalore Metro', lat: 12.9716, lng: 77.5946 },
+    { name: 'Salem District', lat: 11.6643, lng: 78.1460 },
+    { name: 'Mumbai Western', lat: 19.0760, lng: 72.8777 },
+    { name: 'Pune Suburbs', lat: 18.5204, lng: 73.8567 },
+    { name: 'Delhi NCR', lat: 28.7041, lng: 77.1025 }
+  ];
 
   useEffect(() => {
     const urlPersona = searchParams.get('persona') || searchParams.get('mode');
@@ -47,15 +66,22 @@ const Marketplace = ({ defaultPersona }) => {
 
   useEffect(() => {
     fetchProducts();
-  }, [debouncedSearch, filters.category, filters.minPrice, filters.maxPrice, filters.isOrganic, filters.qualityGrade, filters.location, filters.minQuantity, buyerPersona, sortBy]);
+  }, [debouncedSearch, filters.category, filters.minPrice, filters.maxPrice, filters.isOrganic, filters.qualityGrade, filters.location, filters.maxDistance, filters.minQuantity, buyerPersona, sortBy, freshnessTab, deliveryLocation]);
 
   const fetchProducts = async () => {
     setLoading(true);
     try {
       const params = {
         buyer_type: buyerPersona,
-        sortBy
+        sortBy: freshnessTab === 'today' ? 'freshest' : freshnessTab === 'urgent' ? 'urgent' : freshnessTab === 'nearby' ? 'nearest' : sortBy,
+        user_lat: deliveryLocation.lat,
+        user_lng: deliveryLocation.lng
       };
+
+      if (freshnessTab === 'today') params.freshnessFilter = 'today';
+      if (freshnessTab === 'urgent') params.freshnessFilter = 'urgent';
+      if (freshnessTab === 'nearby') params.maxDistance = '100';
+
       if (debouncedSearch) params.search = debouncedSearch;
       if (filters.category !== 'All') params.category = filters.category.toLowerCase();
       if (filters.minPrice) params.minPrice = filters.minPrice;
@@ -63,16 +89,15 @@ const Marketplace = ({ defaultPersona }) => {
       if (filters.isOrganic) params.organic = 'true';
       if (filters.qualityGrade !== 'All') params.qualityGrade = filters.qualityGrade;
       if (filters.location !== 'All') params.location = filters.location;
+      if (filters.maxDistance) params.maxDistance = filters.maxDistance;
       if (filters.minQuantity) params.minQuantity = filters.minQuantity;
-
-      params.user_lat = 12.9716;
-      params.user_lng = 77.5946;
 
       const res = await api.get('/products', { params });
       let data = res.data.data || [];
 
       setProducts(data);
-      setResultCount(data.length);
+      setResultCount(res.data.count || data.length);
+      setMetaStats(res.data.meta || null);
     } catch (error) {
       toast.error('Failed to load marketplace products');
       setProducts([]);
@@ -87,7 +112,7 @@ const Marketplace = ({ defaultPersona }) => {
     setSearchParams({ persona });
     if (persona === 'bulk') {
       setFilters(prev => ({ ...prev, minQuantity: '50' }));
-      toast.success('Switched to Bulk Wholesale Mode (Lots 50kg+, Up to 15% discount)');
+      toast.success('Switched to Bulk Wholesale Mode (Lots 50kg+, Up to 15% volume discount)');
     } else {
       setFilters(prev => ({ ...prev, minQuantity: '' }));
       toast.success('Switched to Individual Consumer Mode (Retail baskets)');
@@ -100,6 +125,11 @@ const Marketplace = ({ defaultPersona }) => {
       ...filters,
       [name]: type === 'checkbox' ? checked : value
     });
+  };
+
+  const handleLocationChange = (loc) => {
+    setDeliveryLocation(loc);
+    toast.success(`📍 Delivery location updated to ${loc.name}. Direct transit & distance recalculated!`);
   };
 
   const categories = [
@@ -116,16 +146,16 @@ const Marketplace = ({ defaultPersona }) => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Top Banner with Buyer Persona Toggle */}
-      <div className="bg-gradient-to-r from-emerald-950 via-primary-dark to-emerald-900 text-white p-6 sm:p-8 rounded-3xl shadow-xl mb-8 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 relative overflow-hidden">
+      <div className="bg-gradient-to-r from-emerald-950 via-primary-dark to-emerald-900 text-white p-6 sm:p-8 rounded-3xl shadow-xl mb-6 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 relative overflow-hidden">
         <div className="relative z-10 max-w-2xl">
           <div className="inline-flex items-center gap-2 bg-amber-400/20 text-amber-300 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3 border border-amber-400/30">
-            <Sparkles size={14} className="text-amber-300" /> Transparent Fair-Trade Digital Market
+            <Sparkles size={14} className="text-amber-300" /> Direct Farm-to-Doorstep Freshness & Proximity Engine
           </div>
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black leading-tight">
             Direct Farm-to-Consumer & Bulk Wholesale Marketplace
           </h1>
           <p className="text-emerald-100 text-xs sm:text-sm mt-2 leading-relaxed">
-            Eliminating 5-7 layers of middlemen. The farmer gets 98% direct payment, while buyers save up to 25% compared to retail supermarkets.
+            Zero warehouse delays. Produce is harvested on demand and dispatched directly from the farm gate to your location.
           </p>
         </div>
 
@@ -158,41 +188,66 @@ const Marketplace = ({ defaultPersona }) => {
         </div>
       </div>
 
-      {/* Buyer Persona Notice Banner */}
-      {buyerPersona === 'bulk' ? (
-        <div className="bg-purple-50 border-2 border-purple-300 p-5 rounded-2xl mb-6 flex flex-wrap justify-between items-center gap-3 text-xs text-purple-950 shadow-sm animate-in fade-in duration-200">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold">
-              <Building2 size={20} />
-            </div>
-            <div>
-              <p className="font-extrabold text-sm text-purple-950">Bulk Wholesale Mode Active</p>
-              <p className="text-purple-700 mt-0.5">Showing wholesale lots with Minimum Order Quantity 50kg+. Automatic tiered volume discounts up to 15% applied at checkout.</p>
-            </div>
+      {/* Delivery Proximity Bar */}
+      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-emerald-200 shadow-xs mb-6 flex flex-col md:flex-row justify-between items-center gap-3">
+        <div className="flex items-center gap-2.5 text-xs text-gray-800">
+          <div className="w-8 h-8 rounded-xl bg-emerald-100 text-primary flex items-center justify-center font-bold">
+            <Navigation size={16} />
           </div>
-          <div className="flex items-center gap-2">
-            <span className="bg-purple-200 text-purple-900 font-bold px-3 py-1 rounded-full text-xs">
-              MOQ 50kg+
-            </span>
+          <div>
+            <span className="text-gray-500 font-medium block text-[10px]">Your Delivery Destination (For Distance & Direct Transit):</span>
+            <strong className="text-emerald-950 font-black text-sm flex items-center gap-1">
+              📍 {deliveryLocation.name}
+              <span className="text-[11px] text-gray-400 font-normal">({deliveryLocation.lat.toFixed(2)}° N, {deliveryLocation.lng.toFixed(2)}° E)</span>
+            </strong>
+          </div>
+        </div>
+
+        {/* Location Selector Chips */}
+        <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1">
+          {presetLocations.map(loc => (
             <button
-              onClick={() => handlePersonaChange('consumer')}
-              className="text-xs text-purple-700 underline font-bold hover:text-purple-900"
+              key={loc.name}
+              onClick={() => handleLocationChange(loc)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                deliveryLocation.name === loc.name
+                  ? 'bg-emerald-800 text-white shadow-xs'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+              }`}
             >
-              Switch to Consumer
+              {loc.name.split(' ')[0]}
             </button>
-          </div>
+          ))}
         </div>
-      ) : (
-        <div className="bg-emerald-50 border-2 border-emerald-200 p-4 rounded-2xl mb-6 flex flex-wrap justify-between items-center gap-3 text-xs text-emerald-950 shadow-xs">
-          <div className="flex items-center gap-2">
-            <DollarSign className="text-emerald-600" size={18} />
-            <span><strong>Individual Consumer Mode:</strong> Small retail baskets (1–20kg), doorstep delivery, and 100% price transparency against APMC Mandi rates.</span>
-          </div>
-          <span className="bg-emerald-200 text-emerald-900 font-bold px-3 py-1 rounded-full text-[11px]">
-            98% Farmer Pay
-          </span>
-        </div>
-      )}
+      </div>
+
+      {/* Freshness & Demand Matching Tab Strip */}
+      <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
+        {[
+          { id: 'all', label: '🌟 All Fresh Produce', icon: <Sparkles size={14} className="text-amber-500" /> },
+          { id: 'today', label: '🌿 Harvested Today', icon: <Leaf size={14} className="text-emerald-500" /> },
+          { id: 'nearby', label: '📍 Nearest Farms (<100km)', icon: <MapPin size={14} className="text-blue-500" /> },
+          { id: 'urgent', label: '⚡ Urgent Fresh Deals (Save Waste)', icon: <Zap size={14} className="text-orange-500" /> }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setFreshnessTab(tab.id)}
+            className={`py-2 px-4 rounded-xl text-xs font-extrabold flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer ${
+              freshnessTab === tab.id
+                ? 'bg-emerald-900 text-white shadow-md ring-2 ring-emerald-400/40'
+                : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+            }`}
+          >
+            {tab.icon}
+            <span>{tab.label}</span>
+            {tab.id === 'urgent' && metaStats?.urgent_fresh_deals_count > 0 && (
+              <span className="bg-amber-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-black">
+                {metaStats.urgent_fresh_deals_count}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
 
       {/* Category Pills Bar */}
       <div className="flex gap-2 overflow-x-auto pb-4 mb-6">
@@ -241,10 +296,14 @@ const Marketplace = ({ defaultPersona }) => {
             onChange={(e) => setSortBy(e.target.value)}
             className="text-xs font-bold border border-gray-300 rounded-xl px-3 py-2 bg-white focus:ring-2 focus:ring-primary"
           >
-            <option value="newest">🕒 Newest Farm Harvest</option>
+            <option value="smart_match">🌟 Smart Match: Nearest & Freshest</option>
+            <option value="nearest">📍 Nearest Farm First</option>
+            <option value="freshest">🌿 Freshest Harvest First</option>
+            <option value="urgent">⚡ Urgent Farm Deals (&lt;36h Left)</option>
             <option value="price_asc">💵 Price: Low to High</option>
             <option value="price_desc">💎 Price: High to Low</option>
             <option value="quantity_desc">📦 Stock: Largest First</option>
+            <option value="newest">🕒 Newest Listed</option>
           </select>
 
           <Button
@@ -278,19 +337,18 @@ const Marketplace = ({ defaultPersona }) => {
           </div>
 
           <div>
-            <label className="block font-bold text-gray-700 mb-1">Origin / State</label>
+            <label className="block font-bold text-gray-700 mb-1">Max Distance from You</label>
             <select
-              name="location"
-              value={filters.location}
+              name="maxDistance"
+              value={filters.maxDistance}
               onChange={handleFilterChange}
               className="w-full border border-gray-300 rounded-xl p-2 bg-white font-medium"
             >
-              <option value="All">All Regions</option>
-              <option value="Tamil Nadu">Tamil Nadu (Salem, Thanjavur)</option>
-              <option value="Maharashtra">Maharashtra (Nashik, Pune)</option>
-              <option value="Kerala">Kerala (Wayanad)</option>
-              <option value="Punjab">Punjab (Ludhiana)</option>
-              <option value="Karnataka">Karnataka (Kolar, Mandya)</option>
+              <option value="">Any Distance (Nationwide)</option>
+              <option value="25">Within 25 km (Local Ultra-Fast)</option>
+              <option value="50">Within 50 km (Suburban Farms)</option>
+              <option value="150">Within 150 km (Regional Farm Belt)</option>
+              <option value="300">Within 300 km (State-wide)</option>
             </select>
           </div>
 
@@ -321,6 +379,16 @@ const Marketplace = ({ defaultPersona }) => {
         </div>
       )}
 
+      {/* Results Header */}
+      <div className="flex justify-between items-center mb-4 text-xs text-gray-600">
+        <span>
+          Showing <strong>{resultCount}</strong> direct farm listings for <strong>{deliveryLocation.name}</strong>
+        </span>
+        <span className="text-emerald-800 font-bold">
+          🚚 Zero Warehouses · Direct Farm Gate Pickup
+        </span>
+      </div>
+
       {/* Products Grid Feed */}
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -344,12 +412,15 @@ const Marketplace = ({ defaultPersona }) => {
         </div>
       ) : (
         <div className="bg-white border border-dashed border-gray-300 rounded-3xl p-16 text-center">
-          <p className="text-gray-500 font-bold text-sm mb-2">No farm produce matches your active filters.</p>
+          <p className="text-gray-500 font-bold text-sm mb-2">No farm produce matches your active freshness & proximity filters.</p>
           <Button
             size="sm"
-            onClick={() => setFilters({ search: '', category: 'All', minPrice: '', maxPrice: '', isOrganic: false, qualityGrade: 'All', location: 'All', minQuantity: '' })}
+            onClick={() => {
+              setFreshnessTab('all');
+              setFilters({ search: '', category: 'All', minPrice: '', maxPrice: '', isOrganic: false, qualityGrade: 'All', location: 'All', maxDistance: '', minQuantity: '' });
+            }}
           >
-            Clear All Filters
+            Reset All Filters
           </Button>
         </div>
       )}

@@ -3,22 +3,8 @@ const mapsService = require('../services/maps.service');
 const smsService = require('../services/sms.service');
 
 /**
- * Get all regional warehouses / agri-hubs (Chennai area)
- */
-const getWarehouses = async (req, res) => {
-  try {
-    const warehouses = db.prepare('SELECT * FROM warehouses ORDER BY id ASC').all();
-    res.json({ success: true, data: warehouses });
-  } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
-  }
-};
-
-/**
  * Get all deliveries for the logged-in driver (or all if admin)
- * Supports 2-Stage Hub & Spoke:
- *   Stage 1: Farm -> Warehouse (First-Mile Farm Gate Pickup)
- *   Stage 2: Warehouse -> Consumer (Last-Mile Doorstep Delivery)
+ * Supports Direct Farmer to Consumer Deliveries
  */
 const getMyDeliveries = async (req, res) => {
   try {
@@ -28,8 +14,6 @@ const getMyDeliveries = async (req, res) => {
     let query = `
       SELECT 
         l.*,
-        w.name as warehouse_name,
-        w.address as warehouse_address,
         o.total_price,
         o.quantity_kg as order_quantity,
         p.name as product_name,
@@ -44,7 +28,6 @@ const getMyDeliveries = async (req, res) => {
         u_buyer.name as buyer_name,
         u_buyer.phone as buyer_phone
       FROM logistics l
-      LEFT JOIN warehouses w ON l.warehouse_id = w.id
       LEFT JOIN orders o ON l.order_id = o.id
       LEFT JOIN products p ON (l.product_id = p.id OR o.product_id = p.id)
       LEFT JOIN users u_farmer ON p.farmer_id = u_farmer.id
@@ -67,15 +50,13 @@ const getMyDeliveries = async (req, res) => {
 };
 
 /**
- * Assign or Update Delivery Task (Stage 1 or Stage 2)
+ * Assign or Update Delivery Task
  */
 const assignDelivery = async (req, res) => {
   try {
     const { 
       order_id, 
       product_id,
-      stage = 'farm_to_warehouse',
-      warehouse_id = 1,
       driver_id, 
       pickup_location, 
       pickup_lat, 
@@ -91,19 +72,17 @@ const assignDelivery = async (req, res) => {
 
     const stmt = db.prepare(`
       INSERT INTO logistics (
-        order_id, product_id, stage, warehouse_id, driver_id, 
+        order_id, product_id, driver_id, 
         pickup_location, pickup_lat, pickup_lng, 
         delivery_location, delivery_lat, delivery_lng, 
         distance_km, estimated_time_hrs, vehicle_type, status
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'assigned')
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'assigned')
     `);
 
     const result = stmt.run(
       order_id || null, 
       product_id || null, 
-      stage, 
-      warehouse_id, 
       driver_id || req.user.id, 
       pickup_location, 
       pickup_lat, 
@@ -211,7 +190,6 @@ const updateDeliveryStatus = async (req, res) => {
 
     db.prepare(query).run(...params);
 
-    // If Stage 2 (Warehouse -> Consumer) is delivered, update the customer order status
     if (delivery.order_id && status === 'delivered') {
       db.prepare('UPDATE orders SET status = "delivered", updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(delivery.order_id);
     } else if (delivery.order_id && status === 'in_transit') {
@@ -253,7 +231,6 @@ const optimizeRoute = async (req, res) => {
 };
 
 module.exports = {
-  getWarehouses,
   getMyDeliveries,
   assignDelivery,
   verifyFarmerBank,

@@ -225,7 +225,7 @@ const handleTwilioGather = async (req, res) => {
 </Response>`);
     }
 
-    // ─── STEP 4: FINAL CONFIRMATION & PUBLISH TO CHENNAI HUB ───
+    // ─── STEP 4: FINAL CONFIRMATION & PUBLISH TO HUB ───
     else if (step === 'CONFIRM') {
       const crop = decodeURIComponent(req.query.crop || 'Onion');
       const qty = parseFloat(req.query.qty) || 200;
@@ -250,7 +250,7 @@ const handleTwilioGather = async (req, res) => {
 </Response>`);
       }
 
-      // Farmer confirmed (pressed 1 or timeout) -> List produce & assign Chennai Hub logistics
+      // Farmer confirmed (pressed 1 or timeout) -> List produce 
       let listingId = Date.now() % 10000;
       try {
         const geo = await mapsService.geocode(address);
@@ -269,55 +269,24 @@ const handleTwilioGather = async (req, res) => {
           db.prepare('UPDATE users SET location = ?, latitude = ?, longitude = ? WHERE id = ?').run(resolvedAddress, farmLat, farmLng, farmer.id);
         }
 
-        const insProd = db.prepare('INSERT INTO products (farmer_id, name, category, description, quantity_kg, price_per_kg, quality_grade, is_organic, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').run(
-          farmer.id, crop, 'vegetables', `Listed via 2G Phone Call (Farm: ${resolvedAddress})`, qty, price, 'A', 0, 'available'
+        const shelfLifeMap = { 'Tomato': 4, 'Onion': 14, 'Potato': 20, 'Cabbage': 4, 'Brinjal': 4, 'Mango Alphonso': 6, 'Banana': 5, 'Fresh Milk': 2 };
+        const shelfDays = shelfLifeMap[crop] || 4;
+        const todayDate = new Date();
+        const harvestDate = todayDate.toISOString().split('T')[0];
+        const expiryDate = new Date(todayDate.getTime() + shelfDays * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+        const insProd = db.prepare('INSERT INTO products (farmer_id, name, category, description, quantity_kg, price_per_kg, quality_grade, is_organic, harvest_date, expiry_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(
+          farmer.id, crop, 'vegetables', `Listed via 2G Phone Call (Farm: ${resolvedAddress})`, qty, price, 'A', 0, harvestDate, expiryDate, 'available'
         );
         listingId = insProd.lastInsertRowid;
 
-        // Create Stage 1 First-Mile Logistics Pickup Task
-        try {
-          const driver = db.prepare("SELECT id FROM users WHERE role = 'logistics' LIMIT 1").get();
-          const warehouse = db.prepare("SELECT * FROM warehouses WHERE city = 'Chennai' LIMIT 1").get() || {
-            id: 1,
-            name: 'Chennai Central Agri-Hub (Koyambedu)',
-            address: 'Koyambedu Wholesale Complex, Chennai',
-            latitude: 13.0694,
-            longitude: 80.1948
-          };
-
-          const distKm = Math.round(mapsService.calculateDistanceKm(farmLat, farmLng, warehouse.latitude, warehouse.longitude) || 120);
-
-          db.prepare(`
-            INSERT INTO logistics (
-              product_id, stage, warehouse_id, driver_id, 
-              pickup_location, pickup_lat, pickup_lng, 
-              delivery_location, delivery_lat, delivery_lng, 
-              distance_km, estimated_time_hrs, vehicle_type, status
-            )
-            VALUES (?, 'farm_to_warehouse', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'assigned')
-          `).run(
-            listingId,
-            warehouse.id,
-            driver?.id || 13,
-            `${resolvedAddress}`,
-            farmLat,
-            farmLng,
-            `${warehouse.name}, ${warehouse.address}`,
-            warehouse.latitude,
-            warehouse.longitude,
-            distKm,
-            parseFloat((distKm / 45).toFixed(1)),
-            qty >= 500 ? 'heavy_truck' : 'mini_truck'
-          );
-        } catch (logErr) {
-          console.warn('[Logistics Farm Pickup Creation Warning]:', logErr.message);
-        }
-
-        // SMS confirmation to farmer
+        // SMS confirmation to farmer mentioning direct nearest matching & freshness validity
         const displayCrop = (lang === 'ta' && tamilCropNames[crop]) ? tamilCropNames[crop] : crop;
         const smsText = lang === 'ta'
-          ? `KisanSetu: Ungal ${qty}kg ${displayCrop} @ Rs ${price}/kg முகவரி: ${resolvedAddress}-ilirundhu Koyambedu Warehouse (Chennai)-kku pickup schedule seiyappattadhu (ID #${listingId}).`
-          : `KisanSetu: Aapki ${qty}kg ${crop} @ Rs ${price}/kg pata: ${resolvedAddress} se Koyambedu Warehouse (Chennai) pickup schedule ho gayi hai (ID #${listingId}).`;
+          ? `உங்கள் ${displayCrop} பட்டியல் (#${listingId}) நேரடி சந்தையில் வெளியிடப்பட்டது! ${expiryDate} வரை ப்ரெஷ். அருகில் உள்ள வாடிக்கையாளர்கள் ஆர்டர் செய்யும்போது SMS வரும்.`
+          : lang === 'en'
+          ? `Your ${crop} listing (#${listingId}) is now live! Fresh & available till ${expiryDate}. Matched directly with nearest buyers.`
+          : `Aapki ${crop} listing (#${listingId}) live ho gayi hai! ${expiryDate} tak fresh. Nazdeeki buyers ke order par SMS aayega.`;
 
         smsService.sendSMS(cleanPhone, smsText).catch(() => {});
 
@@ -327,10 +296,10 @@ const handleTwilioGather = async (req, res) => {
 
       const displayCrop = (lang === 'ta' && tamilCropNames[crop]) ? tamilCropNames[crop] : crop;
       const successMsg = lang === 'ta'
-        ? `வாழ்த்துகள்! உங்கள் ${qty} கிலோ ${displayCrop}, ${price} ரூபாய், முகவரி ${address}-லிருந்து சென்னை கோயம்பேடு கிடங்கு பிக்கப்பிற்கு வெற்றிகரமாக பதிவானது. பட்டியல் எண் ${listingId}. நன்றி! ஜெய் கிசான்!`
+        ? `வாழ்த்துகள்! உங்கள் ${qty} கிலோ ${displayCrop}, ${price} ரூபாய், வெற்றிகரமாக பதிவானது. பட்டியல் எண் ${listingId}. நன்றி! ஜெய் கிசான்!`
         : lang === 'en'
-        ? `Congratulations! Your ${qty} kilograms of ${crop} at ${price} rupees from ${address} is confirmed for Chennai Koyambedu Warehouse pickup. Listing ID is ${listingId}. Thank you! Jai Kisan!`
-        : `बधाई हो किसान भाई! आपकी ${qty} किलो ${crop}, ${price} रुपये, पता ${address} से चेन्नई कोयम्बेडु वेयरहाउस पिकअप के लिए लिस्ट हो गई है। लिस्टिंग नंबर ${listingId}। धन्यवाद! जय किसान!`;
+        ? `Congratulations! Your ${qty} kilograms of ${crop} at ${price} rupees is confirmed. Listing ID is ${listingId}. Thank you! Jai Kisan!`
+        : `बधाई हो किसान भाई! आपकी ${qty} किलो ${crop}, ${price} रुपये, लिस्ट हो गई है। लिस्टिंग नंबर ${listingId}। धन्यवाद! जय किसान!`;
 
       const successAudioUrl = await getSarvamAudio(successMsg, lang);
 

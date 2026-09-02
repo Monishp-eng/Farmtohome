@@ -73,33 +73,33 @@ const AIInsights = () => {
   // Route Optimization State
   const routePresets = [
     {
-      name: 'Western Hub: Nashik Aggregator → Mumbai & Pune',
-      origin: { name: 'Nashik Farmer Aggregator', lat: 19.9975, lng: 73.7898 },
+      name: 'Nashik Farm → Mumbai & Pune Consumers',
+      origin: { name: 'Nashik Farm', lat: 19.9975, lng: 73.7898 },
       destinations: [
-        { name: 'Mumbai Supermarket DC', lat: 19.0760, lng: 72.8777 },
-        { name: 'Thane Distribution Center', lat: 19.2183, lng: 72.9781 },
-        { name: 'Pune Mandi Fulfillment', lat: 18.5204, lng: 73.8567 },
-        { name: 'Navi Mumbai Cold Storage', lat: 19.0330, lng: 73.0297 }
+        { name: 'Mumbai Consumer', lat: 19.0760, lng: 72.8777 },
+        { name: 'Thane Consumer', lat: 19.2183, lng: 72.9781 },
+        { name: 'Pune Consumer', lat: 18.5204, lng: 73.8567 },
+        { name: 'Navi Mumbai Consumer', lat: 19.0330, lng: 73.0297 }
       ]
     },
     {
-      name: 'South Hub: Salem Farm Gate → Bangalore & Chennai',
+      name: 'Salem Farm Gate → Bangalore & Chennai Consumers',
       origin: { name: 'Salem Farm Gate Aggregator', lat: 11.6643, lng: 78.1460 },
       destinations: [
-        { name: 'Hosur Processing Hub', lat: 12.7409, lng: 77.8253 },
-        { name: 'Bangalore Indiranagar Hub', lat: 12.9716, lng: 77.5946 },
-        { name: 'Chennai Koyambedu DC', lat: 13.0827, lng: 80.2707 },
-        { name: 'Mysore Wholesale Market', lat: 12.2958, lng: 76.6394 }
+        { name: 'Hosur Consumer', lat: 12.7409, lng: 77.8253 },
+        { name: 'Bangalore Consumer', lat: 12.9716, lng: 77.5946 },
+        { name: 'Chennai Consumer', lat: 13.0827, lng: 80.2707 },
+        { name: 'Mysore Consumer', lat: 12.2958, lng: 76.6394 }
       ]
     },
     {
-      name: 'North Hub: Ludhiana Grain Aggregator → Delhi NCR',
-      origin: { name: 'Ludhiana Mandi Center', lat: 30.9010, lng: 75.8573 },
+      name: 'Ludhiana Farm → Delhi NCR Consumers',
+      origin: { name: 'Ludhiana Farm', lat: 30.9010, lng: 75.8573 },
       destinations: [
-        { name: 'Ambala Logistics Hub', lat: 30.3782, lng: 76.7767 },
-        { name: 'Karnal Agri Center', lat: 29.6857, lng: 76.9905 },
-        { name: 'Delhi Azadpur Mandi', lat: 28.7041, lng: 77.1025 },
-        { name: 'Gurgaon Supermarket DC', lat: 28.4595, lng: 77.0266 }
+        { name: 'Ambala Consumer', lat: 30.3782, lng: 76.7767 },
+        { name: 'Karnal Consumer', lat: 29.6857, lng: 76.9905 },
+        { name: 'Delhi Consumer', lat: 28.7041, lng: 77.1025 },
+        { name: 'Gurgaon Consumer', lat: 28.4595, lng: 77.0266 }
       ]
     }
   ];

@@ -59,27 +59,22 @@ const placeOrder = async (req, res) => {
     // Deduct stock
     db.prepare('UPDATE products SET quantity_kg = quantity_kg - ? WHERE id = ?').run(qty, product_id);
 
-    // Auto-create Stage 2 (Warehouse -> Consumer) Logistics Task
+    // Auto-create Direct Farmer to Consumer Logistics Task
     try {
       // Find default logistics driver (Kiran)
       const driver = db.prepare("SELECT id, name, phone FROM users WHERE role = 'logistics' LIMIT 1").get();
       const driver_id = driver?.id || 13;
 
-      // Select nearest Chennai Warehouse (Default: Koyambedu Central Hub)
-      const warehouse = db.prepare("SELECT * FROM warehouses WHERE city = 'Chennai' LIMIT 1").get() || {
-        id: 1,
-        name: 'Chennai Central Agri-Hub (Koyambedu)',
-        address: 'Koyambedu Wholesale Complex, Chennai',
-        latitude: 13.0694,
-        longitude: 80.1948
-      };
-
+      const farmer = db.prepare('SELECT * FROM users WHERE id = ?').get(product.farmer_id);
+      
       const buyerUser = db.prepare('SELECT location, latitude, longitude FROM users WHERE id = ?').get(buyer_id);
       const buyerLoc = delivery_address || buyerUser?.location || 'T. Nagar, Chennai, Tamil Nadu';
       const buyerGeo = await mapsService.geocode(buyerLoc);
 
-      const pickupLat = warehouse.latitude || 13.0694;
-      const pickupLng = warehouse.longitude || 80.1948;
+      const pickupLat = farmer.latitude || product.farmer_lat || 13.0694;
+      const pickupLng = farmer.longitude || product.farmer_lng || 80.1948;
+      const pickupLoc = farmer.location || product.farmer_location || 'Farmer Location';
+
       const deliveryLat = buyerGeo.lat || 13.0418; // Default T. Nagar Chennai
       const deliveryLng = buyerGeo.lng || 80.2341;
 
@@ -88,18 +83,17 @@ const placeOrder = async (req, res) => {
 
       db.prepare(`
         INSERT INTO logistics (
-          order_id, product_id, stage, warehouse_id, driver_id, 
+          order_id, product_id, driver_id, 
           pickup_location, pickup_lat, pickup_lng, 
           delivery_location, delivery_lat, delivery_lng, 
           distance_km, estimated_time_hrs, vehicle_type, status
         )
-        VALUES (?, ?, 'warehouse_to_consumer', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'assigned')
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'assigned')
       `).run(
         orderId, 
         product_id,
-        warehouse.id,
         driver_id, 
-        `${warehouse.name}, ${warehouse.address}`, 
+        pickupLoc, 
         pickupLat, 
         pickupLng, 
         buyerLoc, 
@@ -113,9 +107,9 @@ const placeOrder = async (req, res) => {
       console.warn('[Logistics Auto-Sync Warning]:', logErr.message);
     }
 
-    // AUTONOMOUS STEP: Instant SMS notification to Farmer (No confirmation needed from farmer)
+    // AUTONOMOUS STEP: Instant SMS notification to Farmer
     if (product.farmer_phone) {
-      const farmerSMS = `KisanSetu: Naya Order #${orderId} confirm hua! (${qty}kg ${product.name}). Kul kamai: Rs ${farmer_earnings}. Koyambedu Warehouse (Chennai) se dispatch kiya ja raha hai.`;
+      const farmerSMS = `KisanSetu: Naya Order #${orderId} confirm hua! (${qty}kg ${product.name}). Kul kamai: Rs ${farmer_earnings}. Direct pickup from your farm has been scheduled.`;
       dispatchFarmerSMS(product.farmer_phone, farmerSMS);
     }
 

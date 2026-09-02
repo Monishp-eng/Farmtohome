@@ -154,7 +154,7 @@ const getKioskStats = async (req, res) => {
       success: true,
       data: {
         vle_kiosk_id: 'CSC_TN_VLE_4021',
-        gram_panchayat: 'Salem District Agri Hub',
+        gram_panchayat: 'Salem District',
         total_farmers_assisted: 48,
         total_listings_created: 112,
         total_volume_kg: 24500,

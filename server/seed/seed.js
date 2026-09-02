@@ -21,6 +21,9 @@ const seedData = async () => {
   const insertUser = db.prepare('INSERT INTO users (name, email, password_hash, role, phone, location, state, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
   
   const users = [
+    ['Murugan Farmer', 'murugan@example.com', hash, 'farmer', '7989998568', 'Salem', 'Tamil Nadu', 11.6643, 78.1460],
+    ['Anbu Selvan', 'anbu@example.com', hash, 'farmer', '9876543225', 'Thiruvallur', 'Tamil Nadu', 13.1432, 79.9079],
+    ['Karthik Raja', 'karthik@example.com', hash, 'farmer', '9876543226', 'Kanchipuram', 'Tamil Nadu', 12.8342, 79.7036],
     ['Ramesh Kumar', 'ramesh@example.com', hash, 'farmer', '9876543210', 'Nashik', 'Maharashtra', 19.9975, 73.7898],
     ['Lakshmi Devi', 'lakshmi@example.com', hash, 'farmer', '9876543211', 'Anantapur', 'Andhra Pradesh', 14.6819, 77.6006],
     ['Gurpreet Singh', 'gurpreet@example.com', hash, 'farmer', '9876543212', 'Ludhiana', 'Punjab', 30.9010, 75.8573],
@@ -43,38 +46,67 @@ const seedData = async () => {
 
   // Seed Products
   console.log('Seeding products...');
-  const insertProduct = db.prepare('INSERT INTO products (farmer_id, name, category, description, quantity_kg, price_per_kg, msp_price, quality_grade, is_organic) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+  const insertProduct = db.prepare('INSERT INTO products (farmer_id, name, category, description, quantity_kg, price_per_kg, msp_price, quality_grade, is_organic, harvest_date, expiry_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
   
+  const nowMs = Date.now();
+  const dayMs = 24 * 60 * 60 * 1000;
+  const dStr = (offsetDays) => new Date(nowMs + offsetDays * dayMs).toISOString().split('T')[0];
+
   const products = [
-    [1, 'Tomato', 'vegetables', 'Fresh red tomatoes', 200, 25, null, 'A', 1],
-    [1, 'Onion', 'vegetables', 'Nashik red onions', 500, 20, null, 'A', 0],
-    [2, 'Mango Alphonso', 'fruits', 'Sweet alphonso mangoes', 100, 120, null, 'A', 1],
-    [2, 'Pomegranate', 'fruits', 'Anantapur special', 150, 80, null, 'B', 0],
-    [3, 'Basmati Rice', 'grains', 'Premium long grain rice', 1000, 65, 32, 'A', 0],
-    [3, 'Wheat', 'grains', 'High quality wheat', 2000, 28, 22.75, 'A', 0],
-    [4, 'Black Pepper', 'spices', 'Wayanad black pepper', 50, 550, null, 'A', 1],
-    [4, 'Cardamom', 'spices', 'Green cardamom', 20, 1800, null, 'A', 1],
-    [5, 'Fresh Milk', 'dairy', 'Pure cow milk', 100, 55, null, 'A', 0],
-    [5, 'Paneer', 'dairy', 'Fresh farm paneer', 50, 280, null, 'A', 0],
-    [6, 'Grapes', 'fruits', 'Seedless green grapes', 300, 60, null, 'A', 1],
-    [6, 'Papaya', 'fruits', 'Sweet papaya', 200, 25, null, 'B', 0],
-    [7, 'Toor Dal', 'pulses', 'Unpolished toor dal', 500, 95, 70, 'A', 0],
-    [7, 'Moong Dal', 'pulses', 'Yellow moong dal', 400, 110, 77.55, 'A', 0],
-    [1, 'Mustard Seeds', 'oilseeds', 'Yellow mustard seeds', 300, 75, 54.50, 'A', 1],
-    [2, 'Groundnut', 'oilseeds', 'Quality groundnuts', 450, 85, 63.77, 'A', 0],
-    [3, 'Soybean', 'oilseeds', 'Organic soybean', 600, 55, 46.00, 'A', 1],
-    [4, 'Cinnamon', 'spices', 'Premium cinnamon sticks', 30, 800, null, 'A', 1],
-    [5, 'Ghee', 'dairy', 'Pure cow ghee', 100, 600, null, 'A', 1],
-    [6, 'Strawberry', 'fruits', 'Fresh red strawberries', 80, 250, null, 'A', 0],
-    [7, 'Chana Dal', 'pulses', 'Organic chana dal', 400, 80, 53.35, 'A', 1],
-    [1, 'Cabbage', 'vegetables', 'Fresh green cabbage', 300, 20, null, 'B', 0],
-    [2, 'Banana', 'fruits', 'Robusta banana', 500, 30, null, 'A', 0],
-    [3, 'Maize', 'grains', 'Yellow maize', 1500, 24, 20.90, 'B', 0],
-    [4, 'Cloves', 'spices', 'Aromatic cloves', 40, 1200, null, 'A', 1]
+    // Tomatoes harvested today, fresh for 4 days
+    [1, 'Tomato', 'vegetables', 'Fresh red farm-picked tomatoes', 200, 25, null, 'A', 1, dStr(0), dStr(4)],
+    // Nashik onions, harvested 2 days ago, fresh for 14 days
+    [1, 'Onion', 'vegetables', 'Nashik red onions direct from farm', 500, 20, null, 'A', 0, dStr(-2), dStr(12)],
+    // Mango Alphonso harvested today, fresh for 5 days
+    [2, 'Mango Alphonso', 'fruits', 'Sweet alphonso mangoes, natural ripened', 100, 120, null, 'A', 1, dStr(0), dStr(5)],
+    // Pomegranate, fresh for 8 days
+    [2, 'Pomegranate', 'fruits', 'Anantapur ruby red special', 150, 80, null, 'B', 0, dStr(-1), dStr(7)],
+    // Basmati Rice long shelf life
+    [3, 'Basmati Rice', 'grains', 'Premium long grain aged rice', 1000, 65, 32, 'A', 0, dStr(-10), dStr(180)],
+    // Wheat long shelf life
+    [3, 'Wheat', 'grains', 'High quality sharbati wheat', 2000, 28, 22.75, 'A', 0, dStr(-5), dStr(180)],
+    // Black pepper
+    [4, 'Black Pepper', 'spices', 'Wayanad high piperine black pepper', 50, 550, null, 'A', 1, dStr(-10), dStr(365)],
+    // Cardamom
+    [4, 'Cardamom', 'spices', 'Green aromatic cardamom', 20, 1800, null, 'A', 1, dStr(-5), dStr(365)],
+    // Fresh Milk - harvested today, expires tomorrow (URGENT FRESH DEAL)
+    [5, 'Fresh Milk', 'dairy', 'Pure morning cow milk (Raw & chilled)', 100, 55, null, 'A', 0, dStr(0), dStr(1)],
+    // Paneer - freshly prepared, 2 days validity
+    [5, 'Paneer', 'dairy', 'Fresh farm cottage paneer', 50, 280, null, 'A', 0, dStr(0), dStr(2)],
+    // Grapes - harvested today, fresh for 4 days
+    [6, 'Grapes', 'fruits', 'Seedless green crisp grapes', 300, 60, null, 'A', 1, dStr(0), dStr(4)],
+    // Papaya - urgent sale (1 day left)
+    [6, 'Papaya', 'fruits', 'Sweet table papaya (Ready to eat)', 200, 25, null, 'B', 0, dStr(-3), dStr(1)],
+    // Toor Dal
+    [7, 'Toor Dal', 'pulses', 'Unpolished desi toor dal', 500, 95, 70, 'A', 0, dStr(-15), dStr(180)],
+    // Moong Dal
+    [7, 'Moong Dal', 'pulses', 'Yellow split moong dal', 400, 110, 77.55, 'A', 0, dStr(-12), dStr(180)],
+    // Mustard Seeds
+    [1, 'Mustard Seeds', 'oilseeds', 'Yellow bold mustard seeds', 300, 75, 54.50, 'A', 1, dStr(-20), dStr(180)],
+    // Groundnut
+    [2, 'Groundnut', 'oilseeds', 'Quality whole groundnuts', 450, 85, 63.77, 'A', 0, dStr(-10), dStr(90)],
+    // Soybean
+    [3, 'Soybean', 'oilseeds', 'Organic high-protein soybean', 600, 55, 46.00, 'A', 1, dStr(-14), dStr(180)],
+    // Cinnamon
+    [4, 'Cinnamon', 'spices', 'Premium rolled cinnamon sticks', 30, 800, null, 'A', 1, dStr(-30), dStr(365)],
+    // Ghee
+    [5, 'Ghee', 'dairy', 'Pure bilona cow ghee', 100, 600, null, 'A', 1, dStr(-5), dStr(180)],
+    // Strawberry - harvested today, 2 days validity
+    [6, 'Strawberry', 'fruits', 'Fresh red juicy strawberries', 80, 250, null, 'A', 0, dStr(0), dStr(2)],
+    // Chana Dal
+    [7, 'Chana Dal', 'pulses', 'Organic unpolished chana dal', 400, 80, 53.35, 'A', 1, dStr(-8), dStr(180)],
+    // Cabbage - urgent harvest (1 day left)
+    [1, 'Cabbage', 'vegetables', 'Fresh green leafy cabbage', 300, 20, null, 'B', 0, dStr(-2), dStr(1)],
+    // Banana - ripe bunch (3 days left)
+    [2, 'Banana', 'fruits', 'Robusta golden bananas', 500, 30, null, 'A', 0, dStr(-1), dStr(3)],
+    // Maize
+    [3, 'Maize', 'grains', 'Yellow corn grain', 1500, 24, 20.90, 'B', 0, dStr(-10), dStr(180)],
+    // Cloves
+    [4, 'Cloves', 'spices', 'Aromatic fragrant cloves', 40, 1200, null, 'A', 1, dStr(-20), dStr(365)]
   ];
   
   products.forEach(p => insertProduct.run(...p));
-  console.log('Products seeded successfully');
+  console.log('Products seeded successfully with dynamic freshness windows');
 
   // Seed Market Prices
   console.log('Seeding market prices...');

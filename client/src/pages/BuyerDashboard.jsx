@@ -47,7 +47,7 @@ const BuyerDashboard = () => {
     return [
       {
         id: 1,
-        label: 'Home / Hub Location',
+        label: 'Home Location',
         isPrimary: true,
         recipientName: 'Consumer Buyer',
         phone: '+91 9876543210',
@@ -207,9 +207,9 @@ const BuyerDashboard = () => {
     const statuses = ['pending', 'confirmed', 'dispatched', 'in_transit', 'delivered'];
     const displayNames = {
       'pending': '1. Order Placed',
-      'confirmed': '2. Auto-Confirmed & Koyambedu Hub Assigned',
-      'dispatched': '3. Logistics Dispatched',
-      'in_transit': '4. In Transit (Delivery Truck)',
+      'confirmed': '2. Confirmed',
+      'dispatched': '3. Dispatched from Farm',
+      'in_transit': '4. In Transit',
       'delivered': '5. Delivered to Doorstep'
     };
     
@@ -311,17 +311,15 @@ const BuyerDashboard = () => {
                     const showMap = order.status !== 'delivered' && order.status !== 'cancelled';
                     
                     const farmLoc = [order.farmer_lat || 11.6643, order.farmer_lng || 78.1460];
-                    const hubLoc = [13.0694, 80.1948];
                     const consumerLoc = [order.delivery_lat || 13.0418, order.delivery_lng || 80.2341];
-                    const polylinePositions = [farmLoc, hubLoc, consumerLoc];
+                    const polylinePositions = [farmLoc, consumerLoc];
                     
                     let truckLoc = null;
                     if (order.status === 'confirmed') truckLoc = farmLoc;
-                    else if (order.status === 'dispatched') truckLoc = hubLoc;
-                    else if (order.status === 'in_transit') {
+                    else if (order.status === 'dispatched' || order.status === 'in_transit') {
                       truckLoc = [
-                        (hubLoc[0] + consumerLoc[0]) / 2,
-                        (hubLoc[1] + consumerLoc[1]) / 2
+                        (farmLoc[0] + consumerLoc[0]) / 2,
+                        (farmLoc[1] + consumerLoc[1]) / 2
                       ];
                     }
 
@@ -383,7 +381,7 @@ const BuyerDashboard = () => {
                           {showMap && (
                             <div className="h-48 rounded-2xl border-2 border-emerald-100 overflow-hidden relative z-0">
                               <MapContainer 
-                                center={hubLoc} 
+                                center={farmLoc} 
                                 zoom={6} 
                                 scrollWheelZoom={false} 
                                 className="h-full w-full"
@@ -399,9 +397,7 @@ const BuyerDashboard = () => {
                                 <Marker position={farmLoc} icon={createEmojiIcon('🟢')}>
                                   <Popup>Farm Gate Origin</Popup>
                                 </Marker>
-                                <Marker position={hubLoc} icon={createEmojiIcon('🔵')}>
-                                  <Popup>Koyambedu Hub</Popup>
-                                </Marker>
+                                
                                 <Marker position={consumerLoc} icon={createEmojiIcon('🔴')}>
                                   <Popup>Delivery Location</Popup>
                                 </Marker>
@@ -567,7 +563,7 @@ const BuyerDashboard = () => {
                   <div>
                     <label className="block text-[10px] font-bold text-gray-500 mb-1">Address Label</label>
                     <div className="flex gap-2">
-                      {['Home / Hub Location', 'Office / Retail Store', 'Warehouse / Distribution'].map(lbl => (
+                      {['Home Location', 'Office / Retail Store'].map(lbl => (
                         <button
                           key={lbl}
                           type="button"

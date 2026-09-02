@@ -13,7 +13,9 @@
     "build": "cd client && npm run build"
   },
   "dependencies": {
-    "concurrently": "^8.2.2"
+    "adm-zip": "^0.6.0",
+    "concurrently": "^8.2.2",
+    "pptxgenjs": "^4.0.1"
   },
   "keywords": [
     "agriculture",

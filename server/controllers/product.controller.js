@@ -17,6 +17,83 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return parseFloat((R * c).toFixed(1));
 }
 
+const defaultShelfLifeDays = {
+  vegetables: 4,
+  fruits: 6,
+  dairy: 2,
+  grains: 180,
+  pulses: 180,
+  spices: 365,
+  oilseeds: 180
+};
+
+/**
+ * Compute real-time freshness, shelf-life countdown and urgency status
+ */
+function computeFreshness(product) {
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+  
+  let harvestDate = product.harvest_date || (product.created_at ? product.created_at.split(' ')[0] : todayStr);
+  let shelfDays = defaultShelfLifeDays[product.category?.toLowerCase()] || 4;
+  
+  let expiryDate = product.expiry_date;
+  if (!expiryDate) {
+    const hDate = new Date(harvestDate);
+    const expDateObj = new Date(hDate.getTime() + shelfDays * 24 * 60 * 60 * 1000);
+    expiryDate = expDateObj.toISOString().split('T')[0];
+  }
+
+  const expTime = new Date(expiryDate + 'T23:59:59').getTime();
+  const remainingMs = expTime - now.getTime();
+  const hoursRemaining = Math.max(0, Math.round(remainingMs / (1000 * 60 * 60)));
+  const daysRemaining = Math.max(0, Math.ceil(hoursRemaining / 24));
+  
+  const isHarvestedToday = harvestDate === todayStr;
+  const isExpired = remainingMs <= 0;
+  const isUrgentDeal = !isExpired && hoursRemaining > 0 && hoursRemaining <= 36; // <= 36 hours remaining
+
+  let freshnessTier = 'fresh';
+  let badgeText = `⏳ Fresh for ${daysRemaining} days`;
+  let badgeColor = 'emerald';
+
+  if (isExpired) {
+    freshnessTier = 'expired';
+    badgeText = 'Expired';
+    badgeColor = 'red';
+  } else if (isHarvestedToday) {
+    freshnessTier = 'harvested_today';
+    badgeText = '🌿 Harvested Today (Ultra Fresh)';
+    badgeColor = 'green';
+  } else if (isUrgentDeal) {
+    freshnessTier = 'urgent_deal';
+    badgeText = `⚡ Urgent Fresh Deal (${hoursRemaining}h left)`;
+    badgeColor = 'amber';
+  } else if (daysRemaining <= 2) {
+    freshnessTier = 'ending_soon';
+    badgeText = `⏳ ${daysRemaining} days left`;
+    badgeColor = 'orange';
+  } else if (daysRemaining > 30) {
+    freshnessTier = 'stable';
+    badgeText = `🌾 Long Shelf Life (${daysRemaining} days)`;
+    badgeColor = 'blue';
+  }
+
+  return {
+    harvest_date: harvestDate,
+    expiry_date: expiryDate,
+    shelf_life_days: shelfDays,
+    hours_remaining: hoursRemaining,
+    days_remaining: daysRemaining,
+    is_harvested_today: isHarvestedToday,
+    is_urgent_deal: isUrgentDeal,
+    is_expired: isExpired,
+    freshness_tier: freshnessTier,
+    badge_text: badgeText,
+    badge_color: badgeColor
+  };
+}
+
 const getAllProducts = async (req, res) => {
   try {
     const { 
@@ -25,13 +102,15 @@ const getAllProducts = async (req, res) => {
       minPrice, 
       maxPrice, 
       organic, 
-      qualityGrade,
-      location,
+      qualityGrade, 
+      location, 
       buyer_type = 'all', // 'consumer', 'bulk', 'all'
-      minQuantity,
-      user_lat,
-      user_lng,
-      sortBy = 'newest',
+      minQuantity, 
+      user_lat, 
+      user_lng, 
+      freshnessFilter, // 'today', 'urgent', 'all'
+      maxDistance, // in km (e.g. 50, 100)
+      sortBy = 'smart_match', 
       limit = 100, 
       offset = 0 
     } = req.query;
@@ -40,9 +119,9 @@ const getAllProducts = async (req, res) => {
       SELECT p.*, 
              u.name as farmer_name, 
              u.location as farmer_location, 
-             u.state as farmer_state,
-             u.phone as farmer_phone,
-             u.latitude as farmer_lat,
+             u.state as farmer_state, 
+             u.phone as farmer_phone, 
+             u.latitude as farmer_lat, 
              u.longitude as farmer_lng
       FROM products p 
       JOIN users u ON p.farmer_id = u.id 
@@ -92,20 +171,7 @@ const getAllProducts = async (req, res) => {
       params.push(minQtyVal);
     }
 
-    // Sorting
-    if (sortBy === 'price_asc') {
-      query += ' ORDER BY p.price_per_kg ASC';
-    } else if (sortBy === 'price_desc') {
-      query += ' ORDER BY p.price_per_kg DESC';
-    } else if (sortBy === 'quantity_desc') {
-      query += ' ORDER BY p.quantity_kg DESC';
-    } else {
-      query += ' ORDER BY p.created_at DESC';
-    }
-
-    query += ' LIMIT ? OFFSET ?';
-    params.push(parseInt(limit), parseInt(offset));
-
+    // Raw initial query
     const products = db.prepare(query).all(...params);
 
     // Fetch Mandi and MSP benchmark data for price transparency
@@ -118,12 +184,44 @@ const getAllProducts = async (req, res) => {
       };
     });
 
-    // Attach distance and market benchmarks to each product
-    const enrichedProducts = products.map(prod => {
+    // Reference user lat/lng (defaults to Bangalore/Chennai if not passed)
+    const effectiveUserLat = user_lat ? parseFloat(user_lat) : 12.9716;
+    const effectiveUserLng = user_lng ? parseFloat(user_lng) : 77.5946;
+
+    // Attach distance, freshness, and market benchmarks to each product
+    let enrichedProducts = products.map(prod => {
       let distance_km = null;
-      if (user_lat && user_lng && prod.farmer_lat && prod.farmer_lng) {
-        distance_km = calculateDistance(parseFloat(user_lat), parseFloat(user_lng), prod.farmer_lat, prod.farmer_lng);
+      if (prod.farmer_lat && prod.farmer_lng) {
+        distance_km = calculateDistance(effectiveUserLat, effectiveUserLng, prod.farmer_lat, prod.farmer_lng);
       }
+
+      // Real-Time Freshness & Shelf-Life Calculation
+      const freshness = computeFreshness(prod);
+
+      // Estimated Direct Transit Time (Farm -> Doorstep @ ~35km/h rural/suburban speed)
+      const transitHours = distance_km ? Math.max(1, parseFloat((distance_km / 35).toFixed(1))) : 2;
+
+      // Smart Matching Score (Nearest + Freshest + Urgent Rescue Boost)
+      let proximityScore = 50;
+      if (distance_km !== null) {
+        proximityScore = Math.max(10, Math.min(100, Math.round(100 - (distance_km * 0.4))));
+      }
+
+      let freshnessScore = 50;
+      if (freshness.is_harvested_today) {
+        freshnessScore = 100;
+      } else if (freshness.days_remaining >= 4) {
+        freshnessScore = 85;
+      } else if (freshness.days_remaining >= 2) {
+        freshnessScore = 70;
+      } else if (freshness.is_urgent_deal) {
+        freshnessScore = 60;
+      } else if (freshness.is_expired) {
+        freshnessScore = 0;
+      }
+
+      const urgencyBoost = freshness.is_urgent_deal ? 35 : 0;
+      const smartMatchScore = Math.min(100, Math.round((proximityScore * 0.50) + (freshnessScore * 0.35) + urgencyBoost));
 
       // Look up commodity benchmark
       const prodNameClean = prod.name.toLowerCase();
@@ -141,11 +239,14 @@ const getAllProducts = async (req, res) => {
 
       // Minimum Order Quantity (MOQ) logic
       const isBulkAvailable = prod.quantity_kg >= 50;
-      const bulkMoq = isBulkAvailable ? 50 : 5;
+      const bulkMoq = isBulkAvailable ? 50 : 1;
 
       return {
         ...prod,
         distance_km,
+        estimated_transit_hours: transitHours,
+        freshness,
+        smart_match_score: smartMatchScore,
         benchmarks: {
           mandi_modal_price: mandiPrice,
           msp_price: mspPrice,
@@ -166,12 +267,56 @@ const getAllProducts = async (req, res) => {
       };
     });
 
-    // If sorting by distance
-    if (sortBy === 'distance' && user_lat && user_lng) {
-      enrichedProducts.sort((a, b) => (a.distance_km || 9999) - (b.distance_km || 9999));
+    // Exclude strictly expired items from active marketplace view
+    enrichedProducts = enrichedProducts.filter(p => !p.freshness.is_expired);
+
+    // Apply Freshness Filter
+    if (freshnessFilter === 'today') {
+      enrichedProducts = enrichedProducts.filter(p => p.freshness.is_harvested_today);
+    } else if (freshnessFilter === 'urgent') {
+      enrichedProducts = enrichedProducts.filter(p => p.freshness.is_urgent_deal);
     }
 
-    res.json({ success: true, count: enrichedProducts.length, data: enrichedProducts });
+    // Apply Distance Filter
+    if (maxDistance) {
+      const maxDistVal = parseFloat(maxDistance);
+      enrichedProducts = enrichedProducts.filter(p => p.distance_km !== null && p.distance_km <= maxDistVal);
+    }
+
+    // Dynamic Multi-Factor Sorting
+    if (sortBy === 'smart_match' || sortBy === 'nearest_freshest') {
+      enrichedProducts.sort((a, b) => (b.smart_match_score || 0) - (a.smart_match_score || 0));
+    } else if (sortBy === 'nearest') {
+      enrichedProducts.sort((a, b) => (a.distance_km ?? 9999) - (b.distance_km ?? 9999));
+    } else if (sortBy === 'freshest') {
+      enrichedProducts.sort((a, b) => (b.freshness.days_remaining || 0) - (a.freshness.days_remaining || 0));
+    } else if (sortBy === 'urgent') {
+      enrichedProducts.sort((a, b) => (a.freshness.hours_remaining || 999) - (b.freshness.hours_remaining || 999));
+    } else if (sortBy === 'price_asc') {
+      enrichedProducts.sort((a, b) => a.price_per_kg - b.price_per_kg);
+    } else if (sortBy === 'price_desc') {
+      enrichedProducts.sort((a, b) => b.price_per_kg - a.price_per_kg);
+    } else if (sortBy === 'quantity_desc') {
+      enrichedProducts.sort((a, b) => b.quantity_kg - a.quantity_kg);
+    } else {
+      // newest
+      enrichedProducts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
+
+    // Paginate in memory
+    const totalCount = enrichedProducts.length;
+    const paginated = enrichedProducts.slice(parseInt(offset), parseInt(offset) + parseInt(limit));
+
+    res.json({ 
+      success: true, 
+      count: totalCount, 
+      data: paginated,
+      meta: {
+        nearest_farm_distance_km: enrichedProducts[0]?.distance_km || null,
+        urgent_fresh_deals_count: enrichedProducts.filter(p => p.freshness.is_urgent_deal).length,
+        harvested_today_count: enrichedProducts.filter(p => p.freshness.is_harvested_today).length
+      }
+    });
   } catch (error) {
     console.error('[getAllProducts Error]:', error);
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
@@ -184,9 +329,9 @@ const getProductById = async (req, res) => {
       SELECT p.*, 
              u.name as farmer_name, 
              u.location as farmer_location, 
-             u.state as farmer_state,
-             u.phone as farmer_phone,
-             u.latitude as farmer_lat,
+             u.state as farmer_state, 
+             u.phone as farmer_phone, 
+             u.latitude as farmer_lat, 
              u.longitude as farmer_lng
       FROM products p 
       JOIN users u ON p.farmer_id = u.id 
@@ -197,6 +342,18 @@ const getProductById = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
 
+    const { user_lat, user_lng } = req.query;
+    const effectiveUserLat = user_lat ? parseFloat(user_lat) : 12.9716;
+    const effectiveUserLng = user_lng ? parseFloat(user_lng) : 77.5946;
+
+    let distance_km = null;
+    if (product.farmer_lat && product.farmer_lng) {
+      distance_km = calculateDistance(effectiveUserLat, effectiveUserLng, product.farmer_lat, product.farmer_lng);
+    }
+
+    const freshness = computeFreshness(product);
+    const transitHours = distance_km ? Math.max(1, parseFloat((distance_km / 35).toFixed(1))) : 2;
+
     // Benchmark comparison
     const marketBench = db.prepare('SELECT AVG(modal_price) as avg_modal, MAX(msp) as msp FROM market_prices WHERE commodity LIKE ? COLLATE NOCASE').get(`%${product.name}%`);
     const mandiPrice = marketBench?.avg_modal ? parseFloat((marketBench.avg_modal / 100).toFixed(1)) : parseFloat((product.price_per_kg * 1.08).toFixed(1));
@@ -205,6 +362,9 @@ const getProductById = async (req, res) => {
 
     const enriched = {
       ...product,
+      distance_km,
+      estimated_transit_hours: transitHours,
+      freshness,
       benchmarks: {
         mandi_modal_price: mandiPrice,
         msp_price: mspPrice,
@@ -235,17 +395,40 @@ const createProduct = async (req, res) => {
     const { name, category, description, quantity_kg, price_per_kg, msp_price, quality_grade, image_url, is_organic, harvest_date, expiry_date } = req.body;
     const farmer_id = req.user.id;
 
+    const todayStr = new Date().toISOString().split('T')[0];
+    const effectiveHarvestDate = harvest_date || todayStr;
+
+    let effectiveExpiryDate = expiry_date;
+    if (!effectiveExpiryDate) {
+      const shelfDays = defaultShelfLifeDays[category?.toLowerCase()] || 4;
+      const hDate = new Date(effectiveHarvestDate);
+      effectiveExpiryDate = new Date(hDate.getTime() + shelfDays * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    }
+
     const stmt = db.prepare(`
       INSERT INTO products (farmer_id, name, category, description, quantity_kg, price_per_kg, msp_price, quality_grade, image_url, is_organic, harvest_date, expiry_date)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    const result = stmt.run(farmer_id, name, category, description, quantity_kg, price_per_kg, msp_price, quality_grade || 'A', image_url, is_organic ? 1 : 0, harvest_date, expiry_date);
+    const result = stmt.run(
+      farmer_id, 
+      name, 
+      category, 
+      description, 
+      quantity_kg, 
+      price_per_kg, 
+      msp_price, 
+      quality_grade || 'A', 
+      image_url, 
+      is_organic ? 1 : 0, 
+      effectiveHarvestDate, 
+      effectiveExpiryDate
+    );
     
     res.status(201).json({
       success: true,
-      message: 'Product created successfully',
-      data: { id: result.lastInsertRowid }
+      message: 'Product listing published with freshness guarantee',
+      data: { id: result.lastInsertRowid, harvest_date: effectiveHarvestDate, expiry_date: effectiveExpiryDate }
     });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
@@ -254,13 +437,15 @@ const createProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   try {
-    const { name, category, description, quantity_kg, price_per_kg, quality_grade, status, is_organic } = req.body;
+    const { name, category, description, quantity_kg, price_per_kg, quality_grade, status, is_organic, harvest_date, expiry_date } = req.body;
     const product_id = req.params.id;
     
     const product = db.prepare('SELECT farmer_id FROM products WHERE id = ?').get(product_id);
-    if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
-    
-    if (product.farmer_id !== req.user.id && req.user.role !== 'admin') {
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    if (req.user.role !== 'admin' && product.farmer_id !== req.user.id) {
       return res.status(403).json({ success: false, message: 'Not authorized to update this product' });
     }
 
@@ -273,12 +458,26 @@ const updateProduct = async (req, res) => {
           price_per_kg = COALESCE(?, price_per_kg),
           quality_grade = COALESCE(?, quality_grade),
           status = COALESCE(?, status),
-          is_organic = COALESCE(?, is_organic)
+          is_organic = COALESCE(?, is_organic),
+          harvest_date = COALESCE(?, harvest_date),
+          expiry_date = COALESCE(?, expiry_date)
       WHERE id = ?
     `);
-    
-    stmt.run(name, category, description, quantity_kg, price_per_kg, quality_grade, status, is_organic !== undefined ? (is_organic ? 1 : 0) : null, product_id);
-    
+
+    stmt.run(
+      name, 
+      category, 
+      description, 
+      quantity_kg, 
+      price_per_kg, 
+      quality_grade, 
+      status, 
+      is_organic !== undefined ? (is_organic ? 1 : 0) : null,
+      harvest_date,
+      expiry_date,
+      product_id
+    );
+
     res.json({ success: true, message: 'Product updated successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
@@ -290,9 +489,11 @@ const deleteProduct = async (req, res) => {
     const product_id = req.params.id;
     const product = db.prepare('SELECT farmer_id FROM products WHERE id = ?').get(product_id);
     
-    if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
-    
-    if (product.farmer_id !== req.user.id && req.user.role !== 'admin') {
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    if (req.user.role !== 'admin' && product.farmer_id !== req.user.id) {
       return res.status(403).json({ success: false, message: 'Not authorized to delete this product' });
     }
 
@@ -303,10 +504,17 @@ const deleteProduct = async (req, res) => {
   }
 };
 
-const getMyProducts = async (req, res) => {
+const getFarmerProducts = async (req, res) => {
   try {
-    const products = db.prepare('SELECT * FROM products WHERE farmer_id = ? ORDER BY created_at DESC').all(req.user.id);
-    res.json({ success: true, data: products });
+    const farmer_id = req.user.id;
+    const products = db.prepare('SELECT * FROM products WHERE farmer_id = ? ORDER BY created_at DESC').all(farmer_id);
+    
+    const enriched = products.map(p => ({
+      ...p,
+      freshness: computeFreshness(p)
+    }));
+
+    res.json({ success: true, count: enriched.length, data: enriched });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
@@ -314,7 +522,12 @@ const getMyProducts = async (req, res) => {
 
 const getCategorySummary = async (req, res) => {
   try {
-    const summary = db.prepare('SELECT category, COUNT(*) as count, SUM(quantity_kg) as total_kg FROM products WHERE status = "available" GROUP BY category').all();
+    const summary = db.prepare(`
+      SELECT category, COUNT(*) as count, SUM(quantity_kg) as total_quantity_kg
+      FROM products
+      WHERE status = 'available'
+      GROUP BY category
+    `).all();
     res.json({ success: true, data: summary });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
@@ -327,6 +540,7 @@ module.exports = {
   createProduct,
   updateProduct,
   deleteProduct,
-  getMyProducts,
+  getFarmerProducts,
+  getMyProducts: getFarmerProducts,
   getCategorySummary
 };

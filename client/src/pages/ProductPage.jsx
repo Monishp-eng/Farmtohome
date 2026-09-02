@@ -109,7 +109,7 @@ const ProductPage = () => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        const gpsAddr = `Doorstep GPS (${latitude.toFixed(4)}, ${longitude.toFixed(4)}), Chennai Delivery Hub Area, Tamil Nadu`;
+        const gpsAddr = `Doorstep GPS (${latitude.toFixed(4)}, ${longitude.toFixed(4)}), Chennai City, Tamil Nadu`;
         setDeliveryAddress(gpsAddr);
         setIsLocating(false);
         toast.success('📍 Live GPS coordinates captured for delivery!');
@@ -310,11 +310,61 @@ const ProductPage = () => {
               </p>
             </div>
 
-            {/* Direct Farm-to-Fork Fulfillment Matrix */}
+            {/* Direct Freshness Window & Nearest Farm Proximity Matrix */}
+            <div className="bg-gradient-to-br from-emerald-50 via-teal-50/60 to-emerald-100/40 p-4 rounded-2xl border border-emerald-300 shadow-xs space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-black text-emerald-950 flex items-center gap-1.5">
+                  <Clock size={15} className="text-emerald-700" /> Direct Freshness & Proximity Guarantee
+                </span>
+                <span className="text-[10px] bg-emerald-200 text-emerald-900 font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                  <Zap size={10} className="text-amber-600 fill-amber-500" /> Direct Farm Gate Dispatch
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
+                <div className="p-2.5 bg-white rounded-xl border border-emerald-200 shadow-2xs">
+                  <span className="text-[10px] text-gray-400 block uppercase font-bold">Harvest Date</span>
+                  <strong className="text-xs font-black text-gray-900 block mt-0.5">
+                    {product.freshness?.harvest_date || 'Harvested Today'}
+                  </strong>
+                  <span className="text-[9px] text-emerald-700 block font-bold">
+                    {product.freshness?.is_harvested_today ? '🌿 Plucked Today' : 'Direct Harvest'}
+                  </span>
+                </div>
+
+                <div className="p-2.5 bg-white rounded-xl border border-emerald-300 shadow-2xs">
+                  <span className="text-[10px] text-gray-400 block uppercase font-bold">Freshness Window</span>
+                  <strong className="text-xs font-black text-emerald-800 block mt-0.5">
+                    {product.freshness?.days_remaining || 4} Days Left
+                  </strong>
+                  <span className="text-[9px] text-gray-500 block">
+                    Till {product.freshness?.expiry_date || product.expiry_date || '5 Days'}
+                  </span>
+                </div>
+
+                <div className="p-2.5 bg-white rounded-xl border border-blue-200 shadow-2xs">
+                  <span className="text-[10px] text-gray-400 block uppercase font-bold">Nearest Farm Distance</span>
+                  <strong className="text-xs font-black text-blue-900 block mt-0.5">
+                    {product.distance_km ? `${product.distance_km} km` : 'Local Farm'}
+                  </strong>
+                  <span className="text-[9px] text-blue-600 block">{product.farmer_location || 'Salem'}</span>
+                </div>
+
+                <div className="p-2.5 bg-white rounded-xl border border-amber-200 shadow-2xs">
+                  <span className="text-[10px] text-gray-400 block uppercase font-bold">Direct Transit Time</span>
+                  <strong className="text-xs font-black text-amber-900 block mt-0.5">
+                    ~{product.estimated_transit_hours || 2} Hours
+                  </strong>
+                  <span className="text-[9px] text-amber-700 block font-bold">Doorstep Delivery</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Direct Fair-Trade Fulfillment Matrix */}
             <div className="bg-gradient-to-br from-gray-50 to-emerald-50/50 p-4 rounded-2xl border border-emerald-200/80 shadow-xs space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-xs font-black text-emerald-950 flex items-center gap-1.5">
-                  <DollarSign size={15} className="text-primary" /> Direct Fair-Trade Fulfillment Model
+                  <DollarSign size={15} className="text-primary" /> Direct Fair-Trade Payout Model
                 </span>
                 <span className="text-[10px] bg-emerald-200 text-emerald-900 font-extrabold px-2.5 py-0.5 rounded-full">
                   Zero Middlemen Cut
@@ -329,9 +379,9 @@ const ProductPage = () => {
                 </div>
 
                 <div className="p-2.5 bg-white rounded-xl border border-indigo-200">
-                  <span className="text-[10px] text-gray-400 block uppercase font-bold">Fulfillment Hub</span>
-                  <strong className="text-sm font-black text-indigo-900 truncate block mt-0.5">Koyambedu Hub</strong>
-                  <span className="text-[9px] text-indigo-600 block">Chennai Central</span>
+                  <span className="text-[10px] text-gray-400 block uppercase font-bold">Ships Direct</span>
+                  <strong className="text-sm font-black text-indigo-900 truncate block mt-0.5">Direct Farm Gate</strong>
+                  <span className="text-[9px] text-indigo-600 block">{product.farmer_location || 'Local Farm'}</span>
                 </div>
 
                 <div className="p-2.5 bg-white rounded-xl border border-red-200">
@@ -557,7 +607,7 @@ const ProductPage = () => {
 
               {/* Quick Presets */}
               <div>
-                <label className="block text-[10px] font-bold text-gray-400 mb-1">Quick Select Hub / City:</label>
+                <label className="block text-[10px] font-bold text-gray-400 mb-1">Quick Select Delivery Area:</label>
                 <div className="flex flex-wrap gap-1.5">
                   {addressPresets.map((p, idx) => (
                     <button
