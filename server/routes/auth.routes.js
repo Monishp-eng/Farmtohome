@@ -8,7 +8,10 @@ const {
   updateBankDetails, 
   getUserStats, 
   sendOtp, 
-  verifyOtp 
+  verifyOtp,
+  loginWithOtp,
+  refreshTokenHandler,
+  logout
 } = require('../controllers/auth.controller');
 const { 
   registerValidation, 
@@ -26,6 +29,9 @@ router.post('/register', authLimiter, registerValidation, validate, register);
 router.post('/login', authLimiter, loginValidation, validate, login);
 router.post('/send-otp', authLimiter, otpSendValidation, validate, sendOtp);
 router.post('/verify-otp', authLimiter, otpVerifyValidation, validate, verifyOtp);
+router.post('/phone-login', authLimiter, otpVerifyValidation, validate, loginWithOtp);
+router.post('/refresh-token', authLimiter, refreshTokenHandler);
+router.post('/logout', logout);
 
 // Authenticated user profile and direct bank registry
 router.get('/profile', authenticateToken, getProfile);

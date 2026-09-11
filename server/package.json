@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "migrate": "node scripts/migrate.js"
+    "migrate": "node scripts/migrate.js",
+    "seed": "node seed/seed.js",
+    "test:layer1": "node test_layer1_foundation.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

@@ -66,6 +66,13 @@ class DatabaseWrapper {
       )
     `);
 
+    // Safe column migrations for existing SQLite databases
+    try { this.db.run("ALTER TABLE users ADD COLUMN phone_verified INTEGER DEFAULT 0;"); } catch(e) {}
+    try { this.db.run("ALTER TABLE users ADD COLUMN bank_verified INTEGER DEFAULT 0;"); } catch(e) {}
+    try { this.db.run("ALTER TABLE users ADD COLUMN bank_account_number TEXT;"); } catch(e) {}
+    try { this.db.run("ALTER TABLE users ADD COLUMN bank_ifsc TEXT;"); } catch(e) {}
+    try { this.db.run("ALTER TABLE users ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP;"); } catch(e) {}
+
     this.db.run(`
       CREATE TABLE IF NOT EXISTS products (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -209,6 +216,16 @@ class DatabaseWrapper {
         product_id INTEGER REFERENCES products(id),
         rating INTEGER NOT NULL CHECK(rating >= 1 AND rating <= 5),
         comment TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS refresh_tokens (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER REFERENCES users(id),
+        token TEXT UNIQUE NOT NULL,
+        expires_at DATETIME NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);

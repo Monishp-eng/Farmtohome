@@ -2,6 +2,43 @@ const db = require('../config/database');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+const JWT_SECRET = process.env.JWT_SECRET || 'supersecretjwtkeyforfarmersforus2026';
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'supersecretrefreshkeyforfarmersforus2026_rotate';
+
+// Helper to generate access & refresh token pair with rotation
+const generateTokens = (user) => {
+  const payload = {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    phone: user.phone || null
+  };
+
+  const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
+  const refreshToken = jwt.sign(
+    { id: user.id, nonce: Date.now() + '-' + Math.random().toString(36).substring(2, 8) },
+    JWT_REFRESH_SECRET,
+    { expiresIn: '7d' }
+  );
+
+  // Store refresh token in database for verification & revocation
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  try {
+    db.prepare('INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)')
+      .run(user.id, refreshToken, expiresAt);
+  } catch (err) {
+    // If table not yet present or unique constraint, ignore or clean up
+  }
+
+  return {
+    accessToken,
+    refreshToken,
+    token: accessToken, // backwards compatibility for existing frontend
+    user: payload
+  };
+};
+
 const register = async (req, res) => {
   try {
     const { name, email, password, role, phone, location, state, latitude, longitude } = req.body;
@@ -29,20 +66,20 @@ const register = async (req, res) => {
       throw err;
     }
     
-    const payload = {
+    const user = {
       id: result.lastInsertRowid,
       name,
       email,
-      role
+      role,
+      phone
     };
 
-    const token = jwt.sign(payload, process.env.JWT_SECRET || 'supersecretjwtkeyforfarmersforus2026', { expiresIn: '1d' });
+    const tokens = generateTokens(user);
 
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
-      token,
-      user: payload
+      ...tokens
     });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
@@ -63,20 +100,13 @@ const login = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid credentials' });
     }
 
-    const payload = {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role
-    };
-
-    const token = jwt.sign(payload, process.env.JWT_SECRET || 'supersecretjwtkeyforfarmersforus2026', { expiresIn: '1d' });
+    const tokens = generateTokens(user);
 
     res.json({
       success: true,
-      token,
-      user: payload,
-      data: { token, user: payload }
+      message: 'Login successful',
+      ...tokens,
+      data: { token: tokens.accessToken, user: tokens.user }
     });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
@@ -193,4 +223,120 @@ const getUserStats = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getProfile, updateProfile, updateBankDetails, getUserStats, sendOtp, verifyOtp };
+const refreshTokenHandler = async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+      return res.status(400).json({ success: false, message: 'Refresh token is required' });
+    }
+
+    // 1. Verify token signature
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+    } catch (err) {
+      return res.status(401).json({ success: false, message: 'Invalid or expired refresh token' });
+    }
+
+    // 2. Verify token exists in database (has not been revoked)
+    let record;
+    try {
+      record = db.prepare('SELECT * FROM refresh_tokens WHERE token = ? AND user_id = ?').get(refreshToken, decoded.id);
+    } catch (e) {}
+
+    if (!record) {
+      return res.status(401).json({ success: false, message: 'Refresh token not recognized or revoked' });
+    }
+
+    // 3. Look up user
+    const user = db.prepare('SELECT id, name, email, role, phone FROM users WHERE id = ?').get(decoded.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // 4. Delete old refresh token (rotation)
+    try {
+      db.prepare('DELETE FROM refresh_tokens WHERE token = ?').run(refreshToken);
+    } catch (e) {}
+
+    // 5. Issue new access + refresh token pair
+    const tokens = generateTokens(user);
+
+    res.json({
+      success: true,
+      message: 'Tokens rotated successfully',
+      ...tokens
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+};
+
+const loginWithOtp = async (req, res) => {
+  try {
+    const { phone, otp, role = 'farmer', name } = req.body;
+    if (!phone || !otp) {
+      return res.status(400).json({ success: false, message: 'Phone and OTP are required' });
+    }
+
+    // Verify OTP
+    const verification = otpService.verifyOTP(phone, otp);
+    if (!verification.valid) {
+      return res.status(400).json({ success: false, message: verification.message });
+    }
+
+    // Look up or auto-register rural farmer/user
+    let user = db.prepare('SELECT * FROM users WHERE phone = ?').get(phone);
+    if (!user) {
+      const dummyPass = await bcrypt.hash('phone_otp_auth_' + Date.now(), 10);
+      const displayName = name || `User (${phone.slice(-4)})`;
+      const email = `kisan_${phone}@farmtohome.in`;
+      const ins = db.prepare(`
+        INSERT INTO users (name, email, password_hash, role, phone, phone_verified)
+        VALUES (?, ?, ?, ?, ?, 1)
+      `).run(displayName, email, dummyPass, role, phone);
+      user = db.prepare('SELECT id, name, email, role, phone FROM users WHERE id = ?').get(ins.lastInsertRowid);
+    } else {
+      db.prepare('UPDATE users SET phone_verified = 1 WHERE id = ?').run(user.id);
+    }
+
+    const tokens = generateTokens(user);
+
+    res.json({
+      success: true,
+      message: 'Logged in via Phone OTP successfully',
+      ...tokens,
+      data: { token: tokens.accessToken, user: tokens.user }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+};
+
+const logout = async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+    if (refreshToken) {
+      try {
+        db.prepare('DELETE FROM refresh_tokens WHERE token = ?').run(refreshToken);
+      } catch (e) {}
+    }
+    res.json({ success: true, message: 'Logged out successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+};
+
+module.exports = { 
+  register, 
+  login, 
+  getProfile, 
+  updateProfile, 
+  updateBankDetails, 
+  getUserStats, 
+  sendOtp, 
+  verifyOtp,
+  loginWithOtp,
+  refreshTokenHandler,
+  logout
+};
