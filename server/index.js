@@ -25,6 +25,41 @@ app.use((req, res, next) => {
 const path = require('path');
 app.use('/audio', express.static(path.join(__dirname, 'public', 'audio')));
 
+const { apiLimiter } = require('./middleware/rateLimiter');
+const postgres = require('./config/postgres');
+
+// Apply general rate limiting across all api endpoints
+app.use('/api/', apiLimiter);
+
+// ─── SYSTEM HEALTH CHECK ───
+app.get('/api/health', async (req, res) => {
+  const mem = process.memoryUsage();
+  let dbStatus = { engine: 'sqlite', status: 'connected' };
+
+  if (process.env.DATABASE_URL) {
+    const pgCheck = await postgres.testConnection();
+    dbStatus = {
+      engine: 'postgresql',
+      connected: pgCheck.connected,
+      version: pgCheck.version ? pgCheck.version.split(' ')[0] : undefined,
+      error: pgCheck.error
+    };
+  }
+
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime_seconds: Math.floor(process.uptime()),
+    database: dbStatus,
+    memory_mb: {
+      rss: Math.round(mem.rss / 1024 / 1024),
+      heapTotal: Math.round(mem.heapTotal / 1024 / 1024),
+      heapUsed: Math.round(mem.heapUsed / 1024 / 1024)
+    },
+    version: '1.0.0-production'
+  });
+});
+
 // Routes
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/products', require('./routes/product.routes'));

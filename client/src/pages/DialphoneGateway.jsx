@@ -83,18 +83,27 @@ const DialphoneGateway = () => {
 
     try {
       const res = await api.post('/ivr/trigger-outbound-call', { phone: clean });
-      if (res.data.success) {
+      if (res.data?.success && res.data?.data?.success) {
         setCallSid(res.data.data?.callSid || 'CALL_' + Date.now());
         setOutboundCallStatus('CONNECTED');
         toast.success(`Incoming call dispatched to +91 ${clean}! Pick up your phone.`, { id: 'call-toast' });
       } else {
+        const errorMsg = res.data?.data?.message || res.data?.message || '';
+        const isUnverified = errorMsg.toLowerCase().includes('unverified') || errorMsg.toLowerCase().includes('trial');
         setOutboundCallStatus('FAILED');
-        toast.error(res.data.message || 'Call placement failed', { id: 'call-toast' });
+        
+        if (isUnverified) {
+          toast.error(`Twilio Trial Mode: +91 ${clean} is unverified. Dial our toll-free number directly from your phone OR starting In-Browser Voice Call!`, { id: 'call-toast', duration: 7000 });
+          startVirtualCall();
+        } else {
+          toast.error(errorMsg || 'Call placement failed. Dial our number directly from your phone!', { id: 'call-toast' });
+        }
       }
       fetchLogs();
     } catch (err) {
       setOutboundCallStatus('FAILED');
-      toast.error('Failed to trigger outbound call via Twilio', { id: 'call-toast' });
+      toast.error('Starting live In-Browser Voice AI simulator!', { id: 'call-toast' });
+      startVirtualCall();
     } finally {
       setIsCallingOutbound(false);
     }
@@ -297,6 +306,11 @@ const DialphoneGateway = () => {
                 {isCallingOutbound ? 'Dispatching Call...' : '📲 Call My Phone Now'}
               </button>
             </form>
+
+            <div className="flex flex-wrap items-center gap-2 p-3 bg-white/5 rounded-xl border border-white/10 text-xs text-indigo-200">
+              <span className="text-amber-400 font-bold flex items-center gap-1">📞 Direct Dial-In:</span>
+              <span>Any person can dial <strong className="text-white bg-indigo-900/80 px-2 py-0.5 rounded font-mono font-bold">+1 (845) 478-0736</strong> directly from ANY phone (registered or unregistered) to experience Sarvam AI!</span>
+            </div>
 
             {outboundCallStatus === 'CONNECTED' && (
               <div className="bg-emerald-950/80 border border-emerald-500/60 p-3 rounded-2xl flex items-center gap-3 animate-pulse">

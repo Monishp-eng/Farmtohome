@@ -32,10 +32,29 @@ const orderValidation = [
   body('quantity_kg').isNumeric().withMessage('Quantity must be a number')
 ];
 
+const otpSendValidation = [
+  body('phone').trim().notEmpty().withMessage('Phone number is required')
+    .matches(/^[6-9]\d{9}$|^(\+91)[6-9]\d{9}$/).withMessage('Valid 10-digit Indian phone number is required')
+];
+
+const otpVerifyValidation = [
+  body('phone').trim().notEmpty().withMessage('Phone number is required'),
+  body('otp').trim().isLength({ min: 4, max: 6 }).withMessage('OTP must be 4 to 6 digits')
+];
+
+const bankDetailsValidation = [
+  body('bank_account_number').trim().notEmpty().withMessage('Bank account number is required')
+    .isNumeric().withMessage('Bank account must contain digits only'),
+  body('bank_ifsc').trim().toUpperCase().matches(/^[A-Z]{4}0[A-Z0-9]{6}$/).withMessage('Valid Indian IFSC code required (e.g. SBIN0001234)')
+];
+
 module.exports = {
   validate,
   registerValidation,
   loginValidation,
   productValidation,
-  orderValidation
+  orderValidation,
+  otpSendValidation,
+  otpVerifyValidation,
+  bankDetailsValidation
 };

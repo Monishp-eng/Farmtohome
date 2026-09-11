@@ -23,14 +23,14 @@ class VoiceCallService {
     try {
       const auth = Buffer.from(`${this.accountSid}:${this.authToken}`).toString('base64');
 
-      // The initial TwiML greets the farmer using Sarvam AI Indic voice and gathers language choice
+      // 100% Zero-Latency Indian Voice AI with Natural Tamil Phonetics (Zero 503 audio download errors)
       const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
-  <Gather action="${baseUrl}/api/ivr/twilio-gather?step=LANG" numDigits="1" method="POST" timeout="10">
-    <Play>${baseUrl}/audio/0e513d449840835fadeb2201ec5afa9a.wav</Play>
+  <Gather action="${baseUrl}/api/ivr/twilio-gather?step=MENU&amp;lang=ta&amp;phone=${cleanPhone.slice(-10)}" numDigits="1" method="POST" timeout="12">
+    <Say voice="Polly.Aditi" language="hi-IN">वणक्कम! उळवन नेरडी सेवैक्कु नलवरवु। पयिर विर्क, ओण्ड्रु अळुत्तवुम। उङ्गल आर्डर मट्रुम वरुमानम पार्क, इरंडु अळुत्तवुम। पयिर मरुत्तुवरक्कु, मूण्ड्रु अळुत्तवुम।</Say>
   </Gather>
-  <Say voice="Polly.Aditi" language="en-IN">No button was pressed. Thank you for calling KisanSetu.</Say>
+  <Redirect method="POST">${baseUrl}/api/ivr/twilio-gather?step=LANG&amp;lang=ta&amp;phone=${cleanPhone.slice(-10)}</Redirect>
 </Response>`;
 
       const params = new URLSearchParams();

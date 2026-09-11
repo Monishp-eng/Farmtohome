@@ -24,31 +24,31 @@ const tamilCropNames = {
   'Sugarcane': 'கரும்பு'
 };
 
-// Pre-cached Sarvam AI Bulbul v3 Natural Indic Voice Audio URLs
+// Pre-cached Sarvam AI Bulbul v3 Natural Native Tamil Voice Audio URLs (Kavitha)
 const SARVAM_AUDIO = {
-  greeting: '/audio/0e513d449840835fadeb2201ec5afa9a.wav',
+  greeting: '/audio/tamil_greeting_kavitha.wav',
   menu: {
-    ta: '/audio/4e941d33c88b964cc7416d476217e8ca.wav',
+    ta: '/audio/tamil_greeting_kavitha.wav',
     hi: '/audio/fe038b772acf18239d158a6c58263bd2.wav',
     en: '/audio/91a994d175ba11dec7ceea1e5b7524fb.wav'
   },
   sell_prompt: {
-    ta: '/audio/520a4de9bc7624c5ce68d7c27a2b7782.wav',
+    ta: '/audio/tamil_sell_prompt_kavitha.wav',
     hi: '/audio/c445a77f45f57588b131e4f65f735ddd.wav',
     en: '/audio/26c830b1fa149b246f7ad6e05bfe2d06.wav'
   },
   orders: {
-    ta: '/audio/0a631322519b4bab3f8d28f2f2d8d70e.wav',
+    ta: '/audio/tamil_orders_kavitha.wav',
     hi: '/audio/fe038b772acf18239d158a6c58263bd2.wav',
     en: '/audio/91a994d175ba11dec7ceea1e5b7524fb.wav'
   },
   doctor: {
-    ta: '/audio/7632b303e5996c5d92f91af625e83b6f.wav',
+    ta: '/audio/tamil_doctor_kavitha.wav',
     hi: '/audio/fe038b772acf18239d158a6c58263bd2.wav',
     en: '/audio/91a994d175ba11dec7ceea1e5b7524fb.wav'
   },
   thanks: {
-    ta: '/audio/e96d48ba22cc3d006608f93ff2d303e1.wav',
+    ta: '/audio/tamil_confirm_prompt_kavitha.wav',
     hi: '/audio/0e513d449840835fadeb2201ec5afa9a.wav',
     en: '/audio/91a994d175ba11dec7ceea1e5b7524fb.wav'
   }
@@ -68,21 +68,29 @@ const handleTwilioGather = async (req, res) => {
     const step = req.query?.step || 'LANG';
     const lang = req.query?.lang || 'hi';
 
-    // Determine caller phone
-    let phone = req.body?.To || req.body?.Called || req.body?.From || '7989998568';
-    if (phone.includes('8454780736')) {
-      phone = req.body?.From || req.body?.Caller || '7989998568';
+    // Extract caller/farmer phone number dynamically (supports ANY registered or unregistered caller)
+    const twilioNumber = (process.env.TWILIO_PHONE_NUMBER || '8454780736').replace(/[^0-9]/g, '').slice(-10);
+    const fromNumber = (req.body?.From || req.body?.Caller || '').replace(/[^0-9]/g, '').slice(-10);
+    const toNumber = (req.body?.To || req.body?.Called || '').replace(/[^0-9]/g, '').slice(-10);
+    const queryPhone = (req.query?.phone || '').replace(/[^0-9]/g, '').slice(-10);
+
+    let rawPhone = queryPhone;
+    if (!rawPhone) {
+      if (fromNumber && fromNumber !== twilioNumber) {
+        rawPhone = fromNumber;
+      } else if (toNumber && toNumber !== twilioNumber) {
+        rawPhone = toNumber;
+      } else {
+        rawPhone = fromNumber || toNumber || '9876543210';
+      }
     }
-    if (phone.includes('8454780736')) {
-      phone = '7989998568';
-    }
-    const cleanPhone = phone.replace(/[^0-9]/g, '').slice(-10) || '7989998568';
+    const cleanPhone = rawPhone.slice(-10) || '9876543210';
     const baseUrl = process.env.PUBLIC_URL || 'https://oral-iowa-portal-wright.trycloudflare.com';
 
     const getVoiceLang = (l) => l === 'ta' ? 'ta-IN' : l === 'en' ? 'en-IN' : 'hi-IN';
     const getSpeaker = (l) => l === 'ta' ? 'kavitha' : 'priya';
 
-    console.log(`[Twilio Webhook] Step: ${step}, Lang: ${lang}, Digits: "${digits}", RecordingUrl: "${recordingUrl}", Phone: ${cleanPhone}`);
+    console.log(`[Twilio Webhook] Step: ${step}, Lang: ${lang}, Digits: "${digits}", RecordingUrl: "${recordingUrl}", Caller Phone: ${cleanPhone}`);
 
     // Helper: generate audio via Sarvam AI or return cached URL
     async function getSarvamAudio(text, langCode) {
@@ -96,20 +104,26 @@ const handleTwilioGather = async (req, res) => {
 
     // ─── STEP 1: LANGUAGE SELECTION ───
     if (step === 'LANG') {
-      let chosenLang = 'hi';
-      if (digits === '2') chosenLang = 'ta';
+      let chosenLang = 'ta'; // Default to Tamil directly
+      if (digits === '1') chosenLang = 'ta';
+      else if (digits === '2') chosenLang = 'hi';
       else if (digits === '3') chosenLang = 'en';
-      else chosenLang = 'hi'; // Default 1 -> Hindi
 
-      const menuAudioUrl = `${baseUrl}${SARVAM_AUDIO.menu[chosenLang] || SARVAM_AUDIO.menu.ta}`;
+      const menuPrompt = chosenLang === 'ta'
+        ? 'वणक्कम! उळवन नेरडी सेवैक्कु नलवरवु। पयिर विर्क, ओण्ड्रु अळुत्तवुम। उङ्गल आर्डर मट्रुम वरुमानम पार्क, इरंडु अळुत्तवुम। पयिर मरुत्तुवरक्कु, मूण्ड्रु अळुत्तवुम।'
+        : chosenLang === 'en'
+        ? 'Welcome! Press 1 to sell fresh produce. Press 2 to check your orders and earnings. Press 3 for Crop Doctor.'
+        : 'नमस्ते! फसल बेचने के लिए 1 दबाएं। अपने आर्डर और कमाई जानने के लिए 2 दबाएं। फसल डॉक्टर के लिए 3 दबाएं।';
+
+      const langCode = chosenLang === 'en' ? 'en-IN' : 'hi-IN';
 
       return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
-  <Gather action="${baseUrl}/api/ivr/twilio-gather?step=MENU&amp;lang=${chosenLang}" numDigits="1" method="POST" timeout="10">
-    <Play>${menuAudioUrl}</Play>
+  <Gather action="${baseUrl}/api/ivr/twilio-gather?step=MENU&amp;lang=${chosenLang}&amp;phone=${cleanPhone}" numDigits="1" method="POST" timeout="12">
+    <Say voice="Polly.Aditi" language="${langCode}">${menuPrompt}</Say>
   </Gather>
-  <Play>${baseUrl}${SARVAM_AUDIO.thanks[chosenLang] || SARVAM_AUDIO.thanks.ta}</Play>
+  <Redirect method="POST">${baseUrl}/api/ivr/twilio-gather?step=LANG&amp;lang=ta&amp;phone=${cleanPhone}</Redirect>
 </Response>`);
     }
 
@@ -117,14 +131,20 @@ const handleTwilioGather = async (req, res) => {
     else if (step === 'MENU') {
 
       // Option 1: Sell Crop -> Speak details + address after beep
-      if (digits === '1') {
-        const sellPromptUrl = `${baseUrl}${SARVAM_AUDIO.sell_prompt[lang] || SARVAM_AUDIO.sell_prompt.ta}`;
+      if (digits === '1' || digits === '') {
+        const sellPrompt = lang === 'ta'
+          ? 'बीप ओलिर्कु पिरगु तेलिवाग चोल्लुङ्गल: उङ्गल पयिरिन पेयर, एत्तने किलो, ओरु किलो विले, मट्रुम उङ्गल ऊरु मुगवरि।'
+          : lang === 'en'
+          ? 'After the beep, please clearly speak: crop name, quantity in kilograms, expected price per kg, and your farm address.'
+          : 'बीप की आवाज के बाद बोलें: फसल का नाम, कितने किलो, प्रति किलो भाव, और आपका पता।';
+
+        const langCode = lang === 'en' ? 'en-IN' : 'hi-IN';
 
         return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
-  <Play>${sellPromptUrl}</Play>
-  <Record action="${baseUrl}/api/ivr/twilio-gather?step=PRODUCE&amp;lang=${lang}" method="POST" maxLength="15" playBeep="true" timeout="4" trim="trim-silence"/>
+  <Say voice="Polly.Aditi" language="${langCode}">${sellPrompt}</Say>
+  <Record action="${baseUrl}/api/ivr/twilio-gather?step=PRODUCE&amp;lang=${lang}&amp;phone=${cleanPhone}" method="POST" maxLength="20" playBeep="true" timeout="6" trim="trim-silence"/>
 </Response>`);
       }
 
@@ -141,35 +161,41 @@ const handleTwilioGather = async (req, res) => {
         } catch (e) {}
 
         const msg = lang === 'ta'
-          ? `உங்கள் கணக்கில் ${totalOrders} ஆர்டர்கள் உள்ளன. மொத்த வருமானம் ${earnings} ரூபாய். கோயம்பேடு கிடங்கு மூலம் விரைவில் உங்கள் வங்கி கணக்கில் வரவு வைக்கப்படும். நன்றி!`
+          ? `उङ्गल कणक्किल ${totalOrders} आर्डरगल उल्लन। मोत्त वरुमानम ${earnings} रूपाय। नेरडी डेलिवरि मूलम उन्गल बैंक कणक्किल वरवु वेक्कप्पडुम। नन्ड्री!`
           : lang === 'en'
           ? `You have ${totalOrders} confirmed orders. Total earnings: ${earnings} rupees. Deposited to your bank account upon delivery. Thank you!`
-          : `आपके खाते में कुल ${totalOrders} आर्डर हैं। कुल कमाई ${earnings} रुपये है। वेयरहाउस डिलीवरी होते ही बैंक खाते में जमा होगी। धन्यवाद!`;
+          : `आपके खाते में कुल ${totalOrders} आर्डर हैं। कुल कमाई ${earnings} रुपये है। डायरेक्ट डिलीवरी होते ही बैंक खाते में जमा होगी। धन्यवाद!`;
 
-        const audioUrl = await getSarvamAudio(msg, lang);
+        const langCode = lang === 'en' ? 'en-IN' : 'hi-IN';
 
         return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
-  <Play>${audioUrl}</Play>
+  <Say voice="Polly.Aditi" language="${langCode}">${msg}</Say>
 </Response>`);
       }
 
       // Option 3: Crop Doctor
       else if (digits === '3') {
-        const docAudioUrl = `${baseUrl}${SARVAM_AUDIO.doctor[lang] || SARVAM_AUDIO.doctor.ta}`;
+        const docMsg = lang === 'ta'
+          ? 'पयिर मरुत्तुवर सेवैक्कु नलवरवु। इलेयिल एदावदु पूच्चि इरुनदाल चोल्लुङ्गल।'
+          : lang === 'en'
+          ? 'Welcome to Crop Doctor. Please describe the symptoms or leaf discoloration.'
+          : 'फसल डॉक्टर में स्वागत है। कृपया अपनी फसल की बीमारी या पत्तों के लक्षण बताएं।';
+
+        const langCode = lang === 'en' ? 'en-IN' : 'hi-IN';
 
         return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
-  <Play>${docAudioUrl}</Play>
+  <Say voice="Polly.Aditi" language="${langCode}">${docMsg}</Say>
 </Response>`);
       }
 
       // Fallback
       return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Play>${baseUrl}${SARVAM_AUDIO.thanks[lang] || SARVAM_AUDIO.thanks.ta}</Play>
+  <Say voice="Polly.Aditi" language="hi-IN">नन्ड्री! Thank you for calling KisanSetu.</Say>
 </Response>`);
     }
 
@@ -192,7 +218,7 @@ const handleTwilioGather = async (req, res) => {
       }
 
       // 2. Extract crop, quantity, price, and farm address via NLP
-      let crop = 'Onion', qty = 200, price = 30, address = 'Salem, Tamil Nadu';
+      let crop = 'Tomato', qty = 100, price = 25, address = 'Salem, Tamil Nadu';
       if (rawText) {
         try {
           const extracted = await nlpExtractor.extractEntities(rawText, 'PRODUCE_LISTING', lang);
@@ -209,44 +235,44 @@ const handleTwilioGather = async (req, res) => {
       const displayCrop = (lang === 'ta' && tamilCropNames[crop]) ? tamilCropNames[crop] : crop;
 
       const verifyMsg = lang === 'ta'
-        ? `நீங்கள் சொன்னது: பயிர் ${displayCrop}, அளவு ${qty} கிலோ, ஒரு கிலோவுக்கு ${price} ரூபாய், பண்ணை முகவரி ${address}. இது சரி என்றால் ஒன்று அழுத்தவும். மாற்ற இரண்டு அழுத்தவும்.`
+        ? `नीङ्गल चोन्नदु: पयिर ${displayCrop}, अलवु ${qty} किलो, ओरु किलो विले ${price} रूपाय, मुगवरि ${address}। इदु सरि endral ओण्ड्रु अळुत्तवुम। मात्र इरंडु अळुत्तवुम।`
         : lang === 'en'
         ? `You said: crop ${crop}, quantity ${qty} kilograms, price ${price} rupees per kg, farm address ${address}. If correct, press 1. To speak again, press 2.`
         : `आपने बताया: फसल ${crop}, वजन ${qty} किलो, भाव ${price} रुपये प्रति किलो, पता ${address}। सही है तो 1 दबाएं। दोबारा बोलने के लिए 2 दबाएं।`;
 
-      const verifyAudioUrl = await getSarvamAudio(verifyMsg, lang);
+      const langCode = lang === 'en' ? 'en-IN' : 'hi-IN';
 
       return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
-  <Gather action="${baseUrl}/api/ivr/twilio-gather?step=CONFIRM&amp;lang=${lang}&amp;crop=${encodeURIComponent(crop)}&amp;qty=${qty}&amp;price=${price}&amp;address=${encodeURIComponent(address)}" numDigits="1" method="POST" timeout="10">
-    <Play>${verifyAudioUrl}</Play>
+  <Gather action="${baseUrl}/api/ivr/twilio-gather?step=CONFIRM&amp;lang=${lang}&amp;crop=${encodeURIComponent(crop)}&amp;qty=${qty}&amp;price=${price}&amp;address=${encodeURIComponent(address)}&amp;phone=${cleanPhone}" numDigits="1" method="POST" timeout="10">
+    <Say voice="Polly.Aditi" language="${langCode}">${verifyMsg}</Say>
   </Gather>
 </Response>`);
     }
 
     // ─── STEP 4: FINAL CONFIRMATION & PUBLISH TO HUB ───
     else if (step === 'CONFIRM') {
-      const crop = decodeURIComponent(req.query.crop || 'Onion');
-      const qty = parseFloat(req.query.qty) || 200;
-      const price = parseFloat(req.query.price) || 30;
+      const crop = decodeURIComponent(req.query.crop || 'Tomato');
+      const qty = parseFloat(req.query.qty) || 100;
+      const price = parseFloat(req.query.price) || 25;
       const address = decodeURIComponent(req.query.address || 'Salem, Tamil Nadu');
 
       // If farmer pressed 2 -> Retry recording
       if (digits === '2') {
         const retryMsg = lang === 'ta'
-          ? "சரி. பீப் ஒலிக்குப் பிறகு மீண்டும் சொல்லுங்கள்: பயிரின் பெயர், எத்தனை கிலோ, ஒரு கிலோ விலை, மற்றும் உங்கள் பண்ணை முகவரி."
+          ? "सरि। बीप ओलिर्कु पिरगु मीण्डुम चोल्लुङ्गल: पयिरिन पेयर, एत्तने किलो, ओरु किलो विले, मट्रुम उङ्गल मुगवरि।"
           : lang === 'en'
           ? "Okay. Please speak again after the beep: crop name, kilograms, price per kg, and farm address."
           : "ठीक है। बीप के बाद दोबारा बोलें: फसल का नाम, कितने किलो, भाव, और आपका पता।";
 
-        const retryAudioUrl = await getSarvamAudio(retryMsg, lang);
+        const langCode = lang === 'en' ? 'en-IN' : 'hi-IN';
 
         return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
-  <Play>${retryAudioUrl}</Play>
-  <Record action="${baseUrl}/api/ivr/twilio-gather?step=PRODUCE&amp;lang=${lang}" method="POST" maxLength="15" playBeep="true" timeout="4" trim="trim-silence"/>
+  <Say voice="Polly.Aditi" language="${langCode}">${retryMsg}</Say>
+  <Record action="${baseUrl}/api/ivr/twilio-gather?step=PRODUCE&amp;lang=${lang}&amp;phone=${cleanPhone}" method="POST" maxLength="15" playBeep="true" timeout="4" trim="trim-silence"/>
 </Response>`);
       }
 
@@ -296,24 +322,24 @@ const handleTwilioGather = async (req, res) => {
 
       const displayCrop = (lang === 'ta' && tamilCropNames[crop]) ? tamilCropNames[crop] : crop;
       const successMsg = lang === 'ta'
-        ? `வாழ்த்துகள்! உங்கள் ${qty} கிலோ ${displayCrop}, ${price} ரூபாய், வெற்றிகரமாக பதிவானது. பட்டியல் எண் ${listingId}. நன்றி! ஜெய் கிசான்!`
+        ? `वाळ्त्तुकल! उङ्गल ${qty} किलो ${displayCrop}, ${price} रूपाय, वेद्रिगरमाग पदिवानदु। नन्ड्री! जेय किसन!`
         : lang === 'en'
         ? `Congratulations! Your ${qty} kilograms of ${crop} at ${price} rupees is confirmed. Listing ID is ${listingId}. Thank you! Jai Kisan!`
         : `बधाई हो किसान भाई! आपकी ${qty} किलो ${crop}, ${price} रुपये, लिस्ट हो गई है। लिस्टिंग नंबर ${listingId}। धन्यवाद! जय किसान!`;
 
-      const successAudioUrl = await getSarvamAudio(successMsg, lang);
+      const langCode = lang === 'en' ? 'en-IN' : 'hi-IN';
 
       return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
-  <Play>${successAudioUrl}</Play>
+  <Say voice="Polly.Aditi" language="${langCode}">${successMsg}</Say>
 </Response>`);
     }
 
     // Default catch-all
     return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Play>${baseUrl}${SARVAM_AUDIO.thanks.ta}</Play>
+  <Say voice="Polly.Aditi" language="hi-IN">नन्ड्री! Thank you for calling KisanSetu.</Say>
 </Response>`);
 
   } catch (globalErr) {

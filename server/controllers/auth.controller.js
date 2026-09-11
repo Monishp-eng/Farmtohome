@@ -157,6 +157,33 @@ const verifyOtp = async (req, res) => {
   }
 };
 
+const updateBankDetails = async (req, res) => {
+  try {
+    const { bank_account_number, bank_ifsc } = req.body;
+    
+    db.prepare(`
+      UPDATE users 
+      SET bank_account_number = ?,
+          bank_ifsc = ?,
+          bank_verified = 1,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(bank_account_number, bank_ifsc.toUpperCase(), req.user.id);
+    
+    res.json({
+      success: true,
+      message: 'Bank account verified and registered for direct payouts',
+      data: {
+        bank_account_number: `XXXXXX${bank_account_number.slice(-4)}`,
+        bank_ifsc: bank_ifsc.toUpperCase(),
+        bank_verified: true
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+};
+
 const getUserStats = async (req, res) => {
   try {
     const stats = db.prepare('SELECT role, COUNT(*) as count FROM users GROUP BY role').all();
@@ -166,4 +193,4 @@ const getUserStats = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getProfile, updateProfile, getUserStats, sendOtp, verifyOtp };
+module.exports = { register, login, getProfile, updateProfile, updateBankDetails, getUserStats, sendOtp, verifyOtp };

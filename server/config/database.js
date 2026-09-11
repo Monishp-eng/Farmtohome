@@ -57,7 +57,12 @@ class DatabaseWrapper {
         state TEXT,
         latitude REAL,
         longitude REAL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        bank_account_number TEXT,
+        bank_ifsc TEXT,
+        bank_verified INTEGER DEFAULT 0,
+        phone_verified INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
@@ -157,6 +162,53 @@ class DatabaseWrapper {
         user_id INTEGER REFERENCES users(id),
         product_id INTEGER REFERENCES products(id),
         quantity_kg REAL NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS payments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        order_id INTEGER REFERENCES orders(id),
+        user_id INTEGER REFERENCES users(id),
+        payment_gateway TEXT DEFAULT 'razorpay_test',
+        gateway_order_id TEXT,
+        gateway_payment_id TEXT,
+        gateway_signature TEXT,
+        amount REAL NOT NULL,
+        currency TEXT DEFAULT 'INR',
+        status TEXT DEFAULT 'pending' CHECK(status IN ('pending','captured','settled','refunded','failed')),
+        escrow_release_date DATETIME,
+        farmer_payout_status TEXT DEFAULT 'pending',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS ivr_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        call_sid TEXT,
+        caller_phone TEXT NOT NULL,
+        language TEXT DEFAULT 'ta',
+        step TEXT,
+        transcription TEXT,
+        detected_crop TEXT,
+        detected_quantity REAL,
+        detected_price REAL,
+        detected_location TEXT,
+        listing_created_id INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS reviews (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        order_id INTEGER REFERENCES orders(id),
+        user_id INTEGER REFERENCES users(id),
+        product_id INTEGER REFERENCES products(id),
+        rating INTEGER NOT NULL CHECK(rating >= 1 AND rating <= 5),
+        comment TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);

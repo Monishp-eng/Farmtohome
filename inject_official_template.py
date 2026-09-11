@@ -140,6 +140,13 @@ def add_right_arrow(slide, left, top, width=0.34, height=0.28, col=C_GREEN_M):
     arrow.line.fill.background()
     return arrow
 
+def add_down_arrow(slide, left, top, height=0.22, col=C_GREEN_M, width=0.18):
+    arrow = slide.shapes.add_shape(MSO_SHAPE.DOWN_ARROW, Inches(left), Inches(top), Inches(width), Inches(height))
+    arrow.fill.solid()
+    arrow.fill.fore_color.rgb = col
+    arrow.line.fill.background()
+    return arrow
+
 def clear_content_placeholders(slide):
     shapes_to_remove = []
     for shape in slide.shapes:
@@ -348,67 +355,270 @@ p.font.name = "Calibri"
 
 
 # ========================================================
-# SLIDE 4: FEASIBILITY, RISK MITIGATION & ROADMAP
+# SLIDE 4: FEASIBILITY, RISK MITIGATION & PILOT ROADMAP
 # ========================================================
 s4 = prs.slides[3]
 clear_content_placeholders(s4)
 
+FONT_TNR = "Times New Roman"
+
 for shape in s4.shapes:
     if shape.has_text_frame and "feasibility" in shape.text_frame.text.lower():
-        shape.text_frame.paragraphs[0].text = "FEASIBILITY, RISK MITIGATION & ROADMAP"
-        shape.text_frame.paragraphs[0].font.size = Pt(22)
+        shape.text_frame.paragraphs[0].text = "FEASIBILITY, RISK MITIGATION & PILOT ROADMAP"
+        shape.text_frame.paragraphs[0].font.size = Pt(21)
         shape.text_frame.paragraphs[0].font.bold = True
         shape.text_frame.paragraphs[0].font.color.rgb = C_GREEN_HERO
+        shape.text_frame.paragraphs[0].font.name = FONT_TNR
 
-# Left: Real Challenges & Clear Fixes (13pt font)
-add_card(s4, 0.50, 1.30, 6.00, 5.30, border_color=C_GREEN_L)
-add_header_pill(s4, 0.60, 1.40, 5.80, 0.38, "REAL CHALLENGES & PRACTICAL FIXES", bg_color=C_GREEN_HERO, font_size=13)
+# LEFT COLUMN: FEASIBILITY + RISK MITIGATION (Width: 6.0")
+left_card = s4.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.50), Inches(1.30), Inches(6.00), Inches(5.35))
+left_card.fill.solid()
+left_card.fill.fore_color.rgb = C_WHITE
+left_card.line.color.rgb = C_GREEN_M
+left_card.line.width = Pt(1.5)
 
-risks_clean = [
-    ("1. Noisy Phone Lines / Rural Dialects", [
-        "Challenge: Background tractor noise can degrade voice STT",
-        "Fix: DTMF keypad menu + Simple SMS fallback (SELL TOMATO 100KG 25)"
-    ], C_ORANGE_D),
-    ("2. Perishable Crop Spoilage Risk", [
-        "Challenge: Fresh vegetables spoil if not sold in 48-72 hours",
-        "Fix: Auto-discounting urgency deals for local restaurants & bulk buyers"
-    ], C_GREEN_M),
-    ("3. Fake Listings / Bank Verification", [
-        "Challenge: Risk of inaccurate listings or invalid bank accounts",
-        "Fix: Driver inspects produce & scans bank passbook at farm gate"
-    ], C_BLUE)
+# Header Pill
+lpill = s4.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.60), Inches(1.38), Inches(5.80), Inches(0.34))
+lpill.fill.solid()
+lpill.fill.fore_color.rgb = C_GREEN_HERO
+lpill.line.fill.background()
+lp = lpill.text_frame.paragraphs[0]
+lp.text = "FEASIBILITY & RISK MITIGATION"
+lp.alignment = PP_ALIGN.CENTER
+lp.font.size = Pt(12)
+lp.font.bold = True
+lp.font.color.rgb = C_WHITE
+lp.font.name = FONT_TNR
+
+# Section 1: Technically Feasible
+tx_feas = s4.shapes.add_textbox(Inches(0.62), Inches(1.74), Inches(5.75), Inches(1.35))
+tf_feas = tx_feas.text_frame
+tf_feas.word_wrap = True
+tf_feas.margin_top = Inches(0.01)
+tf_feas.margin_left = Inches(0.01)
+tf_feas.margin_right = Inches(0.01)
+
+p_tf = tf_feas.paragraphs[0]
+p_tf.text = "⚙️ TECHNICALLY FEASIBLE"
+p_tf.font.size = Pt(11)
+p_tf.font.bold = True
+p_tf.font.color.rgb = C_GREEN_HERO
+p_tf.font.name = FONT_TNR
+p_tf.space_after = Pt(2)
+
+bullets_tech = [
+    "Zero hardware barrier — Works on basic ₹800 feature phones via 2G IVR",
+    "Low compute — Lightweight Node.js/Python services; <2.5s latency",
+    "Open-source stack — React + PostgreSQL/SQLite + Leaflet + OSRM",
+    "Scalable logistics — 2-Opt routing consolidates small farm pickups"
+]
+for b in bullets_tech:
+    p = tf_feas.add_paragraph()
+    p.text = f"• {b}"
+    p.font.size = Pt(9.5)
+    p.font.color.rgb = C_BLACK
+    p.font.name = FONT_TNR
+    p.space_after = Pt(1.5)
+
+# Section 2: Economically Viable
+tx_econ = s4.shapes.add_textbox(Inches(0.62), Inches(3.12), Inches(5.75), Inches(0.60))
+tf_econ = tx_econ.text_frame
+tf_econ.word_wrap = True
+tf_econ.margin_top = Inches(0.01)
+tf_econ.margin_left = Inches(0.01)
+tf_econ.margin_right = Inches(0.01)
+
+p_ec = tf_econ.paragraphs[0]
+p_ec.text = "💰 ECONOMICALLY VIABLE"
+p_ec.font.size = Pt(11)
+p_ec.font.bold = True
+p_ec.font.color.rgb = C_ORANGE_D
+p_ec.font.name = FONT_TNR
+p_ec.space_after = Pt(2)
+
+p_ec_b = tf_econ.add_paragraph()
+p_ec_b.text = "• 2% transaction fee → covers core platform + communication + mapping costs"
+p_ec_b.font.size = Pt(9.5)
+p_ec_b.font.color.rgb = C_BLACK
+p_ec_b.font.name = FONT_TNR
+
+# Section 3: Key Risks & Engineering Mitigations (Table)
+tx_rk = s4.shapes.add_textbox(Inches(0.62), Inches(3.72), Inches(5.75), Inches(0.30))
+p_rk = tx_rk.text_frame.paragraphs[0]
+p_rk.text = "🛡️ KEY RISKS → ENGINEERING MITIGATION"
+p_rk.font.size = Pt(11)
+p_rk.font.bold = True
+p_rk.font.color.rgb = C_BLUE
+p_rk.font.name = FONT_TNR
+
+# Risk Mitigation Table
+table_shape = s4.shapes.add_table(5, 2, Inches(0.62), Inches(4.04), Inches(5.75), Inches(2.45))
+table = table_shape.table
+table.columns[0].width = Inches(2.45)
+table.columns[1].width = Inches(3.30)
+
+table_data = [
+    ("Challenge", "Our Mitigation"),
+    ("🎙️ Noise & rural dialects", "IVR + DTMF + SMS fallback"),
+    ("🥬 Produce spoilage", "Shelf-life engine + 5–15% flash discounts"),
+    ("🏦 False listings / bank errors", "Farm-gate grading + passbook OCR"),
+    ("🚚 Small-lot transport cost", "2-Opt clustering within 25 km")
 ]
 
-for i, (r_title, r_items, col) in enumerate(risks_clean):
-    ry = 1.88 + i * 1.50
-    add_card(s4, 0.65, ry, 5.70, 1.40, bg_color=C_GRAY_L, border_color=col, border_width=Pt(1.2))
-    add_header_pill(s4, 0.75, ry + 0.08, 5.50, 0.30, r_title, bg_color=col, font_size=11)
-    add_bullets(s4, 0.82, ry + 0.42, 5.35, 0.90, r_items, font_size=11)
+for row_idx, row in enumerate(table_data):
+    for col_idx, cell_value in enumerate(row):
+        cell = table.cell(row_idx, col_idx)
+        cell.text = cell_value
+        p = cell.text_frame.paragraphs[0]
+        p.font.name = FONT_TNR
+        if row_idx == 0:
+            cell.fill.solid()
+            cell.fill.fore_color.rgb = C_BLUE
+            p.font.bold = True
+            p.font.size = Pt(10)
+            p.font.color.rgb = C_WHITE
+            p.alignment = PP_ALIGN.CENTER
+        else:
+            cell.fill.solid()
+            cell.fill.fore_color.rgb = C_GRAY_L if row_idx % 2 == 1 else C_WHITE
+            p.font.size = Pt(9)
+            p.font.color.rgb = C_BLACK
+            p.alignment = PP_ALIGN.LEFT
+            if col_idx == 0:
+                p.font.bold = True
 
-# Right: Phased Roadmap (13pt font)
-add_card(s4, 6.70, 1.30, 6.10, 5.30, bg_color=C_GREEN_BG, border_color=C_GREEN_L)
-add_header_pill(s4, 6.80, 1.40, 5.90, 0.38, "PHASED PILOT & SCALE ROADMAP", bg_color=C_GREEN_HERO, font_size=13)
 
-phases_clean = [
-    ("PHASE 1", "Working Prototype (DONE ✅)", [
-        "End-to-end 2G IVR voice listing tested on real calls",
-        "Live APMC price checking, direct marketplace & 2-Opt routing"
-    ], C_GREEN_M),
-    ("PHASE 2", "District Pilot (Months 1–4)", [
-        "500 farmers in Salem / Nashik vegetable clusters",
-        "10 shared mini-trucks handling 2,000 monthly orders"
-    ], C_BLUE),
-    ("PHASE 3", "State Federation (Months 5–12)", [
-        "50+ FPOs & restaurant wholesale networks across 5 states",
-        "Target ₹10 Crore monthly Gross Merchandise Value"
-    ], C_ORANGE_D)
+# RIGHT COLUMN: PILOT → SCALE ROADMAP (Width: 6.10")
+right_card = s4.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(6.70), Inches(1.30), Inches(6.10), Inches(5.35))
+right_card.fill.solid()
+right_card.fill.fore_color.rgb = C_GREEN_BG
+right_card.line.color.rgb = C_GREEN_M
+right_card.line.width = Pt(1.5)
+
+# Header Pill
+rpill = s4.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(6.80), Inches(1.38), Inches(5.90), Inches(0.34))
+rpill.fill.solid()
+rpill.fill.fore_color.rgb = C_GREEN_HERO
+rpill.line.fill.background()
+rp = rpill.text_frame.paragraphs[0]
+rp.text = "PILOT → SCALE ROADMAP"
+rp.alignment = PP_ALIGN.CENTER
+rp.font.size = Pt(12)
+rp.font.bold = True
+rp.font.color.rgb = C_WHITE
+rp.font.name = FONT_TNR
+
+# Phase 1 Box
+p1_card = s4.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(6.85), Inches(1.78), Inches(5.80), Inches(1.42))
+p1_card.fill.solid()
+p1_card.fill.fore_color.rgb = C_WHITE
+p1_card.line.color.rgb = C_GREEN_M
+p1_card.line.width = Pt(1.2)
+
+p1_hdr = s4.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(6.95), Inches(1.84), Inches(5.60), Inches(0.28))
+p1_hdr.fill.solid()
+p1_hdr.fill.fore_color.rgb = C_GREEN_M
+p1_hdr.line.fill.background()
+p = p1_hdr.text_frame.paragraphs[0]
+p.text = "🟢 PHASE 1 : PROTOTYPE — DONE (Grand Finale Ready)"
+p.font.bold = True
+p.font.size = Pt(10)
+p.font.color.rgb = C_WHITE
+p.font.name = FONT_TNR
+
+tx_p1 = s4.shapes.add_textbox(Inches(6.95), Inches(2.14), Inches(5.60), Inches(0.98))
+tf_p1 = tx_p1.text_frame
+tf_p1.word_wrap = True
+tf_p1.margin_top = Inches(0.01)
+p_items1 = [
+    "✓ 2G IVR + Sarvam AI        ✓ 2-Opt Logistics Optimization",
+    "✓ APMC Price Verification    ✓ Live Leaflet GIS Tracking",
+    "✓ Direct Marketplace         ✓ T+0 Digital Escrow Settlement"
 ]
+for item in p_items1:
+    p = tf_p1.paragraphs[0] if item == p_items1[0] else tf_p1.add_paragraph()
+    p.text = item
+    p.font.size = Pt(9)
+    p.font.color.rgb = C_BLACK
+    p.font.name = FONT_TNR
+    p.space_after = Pt(1.5)
 
-for i, (badge, p_title, p_items, col) in enumerate(phases_clean):
-    py = 1.88 + i * 1.50
-    add_card(s4, 6.85, py, 5.80, 1.40, bg_color=C_WHITE, border_color=col, border_width=Pt(1.2))
-    add_header_pill(s4, 6.95, py + 0.08, 5.60, 0.30, f"{badge}: {p_title}", bg_color=col, font_size=11)
-    add_bullets(s4, 7.05, py + 0.42, 5.45, 0.90, p_items, font_size=11)
+# Down Arrow 1
+add_down_arrow(s4, 9.65, 3.22, height=0.18, col=C_GREEN_M, width=0.16)
+
+# Phase 2 Box
+p2_card = s4.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(6.85), Inches(3.42), Inches(5.80), Inches(1.38))
+p2_card.fill.solid()
+p2_card.fill.fore_color.rgb = C_WHITE
+p2_card.line.color.rgb = C_BLUE
+p2_card.line.width = Pt(1.2)
+
+p2_hdr = s4.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(6.95), Inches(3.48), Inches(5.60), Inches(0.28))
+p2_hdr.fill.solid()
+p2_hdr.fill.fore_color.rgb = C_BLUE
+p2_hdr.line.fill.background()
+p = p2_hdr.text_frame.paragraphs[0]
+p.text = "🔵 PHASE 2 : DISTRICT PILOT (Months 1–4)"
+p.font.bold = True
+p.font.size = Pt(10)
+p.font.color.rgb = C_WHITE
+p.font.name = FONT_TNR
+
+tx_p2 = s4.shapes.add_textbox(Inches(6.95), Inches(3.78), Inches(5.60), Inches(0.95))
+tf_p2 = tx_p2.text_frame
+tf_p2.word_wrap = True
+tf_p2.margin_top = Inches(0.01)
+p_items2 = [
+    "• 500 farmers & 3 FPOs in Salem + Nashik vegetable clusters",
+    "• 10 Tata Ace owner-drivers onboarded for shared transport",
+    "• Target: 2,000 direct consumer & bulk restaurant orders / month"
+]
+for item in p_items2:
+    p = tf_p2.paragraphs[0] if item == p_items2[0] else tf_p2.add_paragraph()
+    p.text = item
+    p.font.size = Pt(9)
+    p.font.color.rgb = C_BLACK
+    p.font.name = FONT_TNR
+    p.space_after = Pt(1.5)
+
+# Down Arrow 2
+add_down_arrow(s4, 9.65, 4.82, height=0.18, col=C_BLUE, width=0.16)
+
+# Phase 3 Box
+p3_card = s4.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(6.85), Inches(5.02), Inches(5.80), Inches(1.50))
+p3_card.fill.solid()
+p3_card.fill.fore_color.rgb = C_WHITE
+p3_card.line.color.rgb = C_ORANGE_D
+p3_card.line.width = Pt(1.2)
+
+p3_hdr = s4.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(6.95), Inches(5.08), Inches(5.60), Inches(0.28))
+p3_hdr.fill.solid()
+p3_hdr.fill.fore_color.rgb = C_ORANGE_D
+p3_hdr.line.fill.background()
+p = p3_hdr.text_frame.paragraphs[0]
+p.text = "🟠 PHASE 3 : STATE FEDERATION (Months 5–12)"
+p.font.bold = True
+p.font.size = Pt(10)
+p.font.color.rgb = C_WHITE
+p.font.name = FONT_TNR
+
+tx_p3 = s4.shapes.add_textbox(Inches(6.95), Inches(5.38), Inches(5.60), Inches(1.05))
+tf_p3 = tx_p3.text_frame
+tf_p3.word_wrap = True
+tf_p3.margin_top = Inches(0.01)
+p_items3 = [
+    "• Onboard 50+ FPOs across 5 agricultural states (TN, MH, AP, KA, PB)",
+    "• Institutional buyers: Canteen chains, hostels, and kirana networks",
+    "• Financial Target: ₹10 Crore / month Gross Merchandise Value (GMV)"
+]
+for item in p_items3:
+    p = tf_p3.paragraphs[0] if item == p_items3[0] else tf_p3.add_paragraph()
+    p.text = item
+    p.font.size = Pt(9)
+    p.font.color.rgb = C_BLACK
+    p.font.name = FONT_TNR
+    p.space_after = Pt(1.5)
+
 
 
 # ========================================================
