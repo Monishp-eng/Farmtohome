@@ -83,7 +83,49 @@ class DatabaseWrapper {
     try { this.db.run("ALTER TABLE users ADD COLUMN bank_verified INTEGER DEFAULT 0;"); } catch(e) {}
     try { this.db.run("ALTER TABLE users ADD COLUMN bank_account_number TEXT;"); } catch(e) {}
     try { this.db.run("ALTER TABLE users ADD COLUMN bank_ifsc TEXT;"); } catch(e) {}
+    try { this.db.run("ALTER TABLE users ADD COLUMN bank_name TEXT DEFAULT 'State Bank of India';"); } catch(e) {}
     try { this.db.run("ALTER TABLE users ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP;"); } catch(e) {}
+    try { this.db.run("ALTER TABLE orders ADD COLUMN dispute_reason TEXT;"); } catch(e) {}
+    try { this.db.run("ALTER TABLE orders ADD COLUMN dispute_status TEXT DEFAULT 'none';"); } catch(e) {}
+    try { this.db.run("ALTER TABLE orders ADD COLUMN auto_cancel_at DATETIME;"); } catch(e) {}
+
+    // Safe migration: check if orders table allows 'placed' status, if not recreate with expanded constraint
+    try {
+      this.db.run("INSERT INTO orders (id, buyer_id, product_id, farmer_id, quantity_kg, total_price, farmer_earnings, status) VALUES (-999, 1, 1, 1, 1, 1, 1, 'placed')");
+      this.db.run("DELETE FROM orders WHERE id = -999");
+    } catch(e) {
+      try {
+        this.db.run("ALTER TABLE orders RENAME TO orders_old");
+        this.db.run(`
+          CREATE TABLE orders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            buyer_id INTEGER REFERENCES users(id),
+            product_id INTEGER REFERENCES products(id),
+            farmer_id INTEGER REFERENCES users(id),
+            quantity_kg REAL NOT NULL,
+            total_price REAL NOT NULL,
+            platform_fee REAL DEFAULT 0,
+            farmer_earnings REAL NOT NULL,
+            status TEXT DEFAULT 'placed' CHECK(status IN ('placed','pending','confirmed','farmer_packed','driver_picked','dispatched','in_transit','delivered','settled','disputed','cancelled')),
+            payment_status TEXT DEFAULT 'pending' CHECK(payment_status IN ('pending','paid','escrow','settled','refunded')),
+            delivery_address TEXT,
+            dispute_reason TEXT,
+            dispute_status TEXT DEFAULT 'none',
+            auto_cancel_at DATETIME,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+        this.db.run(`
+          INSERT INTO orders (id, buyer_id, product_id, farmer_id, quantity_kg, total_price, platform_fee, farmer_earnings, status, payment_status, delivery_address, created_at, updated_at)
+          SELECT id, buyer_id, product_id, farmer_id, quantity_kg, total_price, platform_fee, farmer_earnings, status, payment_status, delivery_address, created_at, updated_at
+          FROM orders_old
+        `);
+        this.db.run("DROP TABLE orders_old");
+      } catch(migErr) {
+        console.warn('[Orders table migration note]:', migErr.message);
+      }
+    }
 
     this.db.run(`
       CREATE TABLE IF NOT EXISTS products (
@@ -115,9 +157,12 @@ class DatabaseWrapper {
         total_price REAL NOT NULL,
         platform_fee REAL DEFAULT 0,
         farmer_earnings REAL NOT NULL,
-        status TEXT DEFAULT 'pending' CHECK(status IN ('pending','confirmed','dispatched','in_transit','delivered','cancelled')),
-        payment_status TEXT DEFAULT 'pending' CHECK(payment_status IN ('pending','paid','refunded')),
+        status TEXT DEFAULT 'placed' CHECK(status IN ('placed','pending','confirmed','farmer_packed','driver_picked','dispatched','in_transit','delivered','settled','disputed','cancelled')),
+        payment_status TEXT DEFAULT 'pending' CHECK(payment_status IN ('pending','paid','escrow','settled','refunded')),
         delivery_address TEXT,
+        dispute_reason TEXT,
+        dispute_status TEXT DEFAULT 'none',
+        auto_cancel_at DATETIME,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
@@ -199,6 +244,24 @@ class DatabaseWrapper {
         status TEXT DEFAULT 'pending' CHECK(status IN ('pending','captured','settled','refunded','failed')),
         escrow_release_date DATETIME,
         farmer_payout_status TEXT DEFAULT 'pending',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS payout_ledger (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        farmer_id INTEGER REFERENCES users(id),
+        order_id INTEGER REFERENCES orders(id),
+        gross_amount REAL NOT NULL,
+        platform_fee REAL NOT NULL,
+        net_payout REAL NOT NULL,
+        bank_account_number TEXT,
+        bank_ifsc TEXT,
+        bank_name TEXT,
+        utr_reference TEXT UNIQUE,
+        status TEXT DEFAULT 'settled' CHECK(status IN ('pending','processing','settled','failed')),
+        settled_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);

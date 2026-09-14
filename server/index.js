@@ -89,6 +89,8 @@ app.use('/api/logistics', require('./routes/logistics.routes'));
 app.use('/api/market', require('./routes/market.routes'));
 app.use('/api/ai', require('./routes/ai.routes'));
 app.use('/api/cart', require('./routes/cart.routes'));
+app.use('/api/payments', require('./routes/payment.routes'));
+app.use('/api/payouts', require('./routes/payout.routes'));
 app.use('/api/ivr', require('./routes/ivr.routes'));
 app.use('/api/copilot', require('./routes/copilot.routes'));
 app.use('/api/csc', require('./routes/csc.routes'));

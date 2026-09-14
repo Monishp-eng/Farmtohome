@@ -1,6 +1,7 @@
 const db = require('../config/database');
 const { dispatchFarmerSMS } = require('./ivr.controller');
 const mapsService = require('../services/maps.service');
+const sseService = require('../services/sse.service');
 
 const placeOrder = async (req, res) => {
   try {
@@ -49,10 +50,11 @@ const placeOrder = async (req, res) => {
     const platform_fee = parseFloat((total_price * 0.02).toFixed(2));
     const farmer_earnings = parseFloat((total_price - platform_fee).toFixed(2));
 
+    const autoCancelAt = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
     const result = db.prepare(`
-      INSERT INTO orders (buyer_id, product_id, farmer_id, quantity_kg, total_price, platform_fee, farmer_earnings, delivery_address, status, payment_status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'confirmed', 'paid')
-    `).run(buyer_id, product_id, product.farmer_id, qty, total_price, platform_fee, farmer_earnings, delivery_address || 'T. Nagar, Chennai, Tamil Nadu');
+      INSERT INTO orders (buyer_id, product_id, farmer_id, quantity_kg, total_price, platform_fee, farmer_earnings, delivery_address, status, payment_status, auto_cancel_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'placed', 'pending', ?)
+    `).run(buyer_id, product_id, product.farmer_id, qty, total_price, platform_fee, farmer_earnings, delivery_address || 'T. Nagar, Chennai, Tamil Nadu', autoCancelAt);
 
     const orderId = result.lastInsertRowid;
 
@@ -113,6 +115,16 @@ const placeOrder = async (req, res) => {
       dispatchFarmerSMS(product.farmer_phone, farmerSMS);
     }
 
+    sseService.broadcast('order:placed', {
+      orderId,
+      buyer_id,
+      farmer_id: product.farmer_id,
+      product_name: product.name,
+      quantity_kg: qty,
+      total_price,
+      status: 'placed'
+    }, [buyer_id, product.farmer_id]);
+
     res.status(201).json({
       success: true,
       message: 'Order placed successfully and synchronized with Logistics & Farmer SMS',
@@ -127,7 +139,9 @@ const placeOrder = async (req, res) => {
         farmer_earnings, 
         order_type,
         recurring_frequency,
-        status: 'pending' 
+        status: 'placed',
+        payment_status: 'pending',
+        auto_cancel_at: autoCancelAt
       }
     });
   } catch (error) {
@@ -224,18 +238,23 @@ const updateOrderStatus = async (req, res) => {
     const order_id = req.params.id;
     
     const validTransitions = {
-      'pending': ['confirmed', 'cancelled'],
-      'confirmed': ['dispatched', 'cancelled'],
-      'dispatched': ['in_transit'],
-      'in_transit': ['delivered'],
-      'delivered': [],
-      'cancelled': []
+      'placed':        ['confirmed', 'cancelled'],
+      'pending':       ['confirmed', 'cancelled'],
+      'confirmed':     ['farmer_packed', 'dispatched', 'driver_picked', 'cancelled'],
+      'farmer_packed':  ['driver_picked', 'dispatched', 'cancelled'],
+      'driver_picked':  ['in_transit', 'dispatched'],
+      'dispatched':    ['driver_picked', 'in_transit'],
+      'in_transit':     ['delivered'],
+      'delivered':      ['settled', 'disputed'],
+      'settled':        [],
+      'disputed':       ['settled', 'cancelled'],
+      'cancelled':      []
     };
     
-    const order = db.prepare('SELECT farmer_id, buyer_id, status FROM orders WHERE id = ?').get(order_id);
+    const order = db.prepare('SELECT o.*, p.name as product_name FROM orders o JOIN products p ON o.product_id = p.id WHERE o.id = ?').get(order_id);
     if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
     
-    if (order.farmer_id !== req.user.id && req.user.role !== 'admin' && req.user.role !== 'logistics') {
+    if (order.farmer_id !== req.user.id && req.user.role !== 'admin' && req.user.role !== 'logistics' && req.user.role !== 'driver') {
       return res.status(403).json({ success: false, message: 'Not authorized to update this order' });
     }
     
@@ -244,13 +263,46 @@ const updateOrderStatus = async (req, res) => {
     }
 
     if (status === 'confirmed') {
-      db.prepare("UPDATE orders SET status = ?, payment_status = 'paid', updated_at = CURRENT_TIMESTAMP WHERE id = ?").run(status, order_id);
+      const payStatus = order.payment_status === 'pending' ? 'paid' : order.payment_status;
+      db.prepare("UPDATE orders SET status = ?, payment_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?").run(status, payStatus, order_id);
+    } else if (status === 'settled') {
+      db.prepare("UPDATE orders SET status = ?, payment_status = 'settled', updated_at = CURRENT_TIMESTAMP WHERE id = ?").run(status, order_id);
+      
+      // Auto-trigger payout_ledger entry if not yet recorded
+      try {
+        const existingPayout = db.prepare('SELECT id FROM payout_ledger WHERE order_id = ?').get(order_id);
+        if (!existingPayout) {
+          const farmer = db.prepare('SELECT * FROM users WHERE id = ?').get(order.farmer_id);
+          const gross = parseFloat(order.total_price);
+          const fee = parseFloat((gross * 0.02).toFixed(2));
+          const net = parseFloat((gross - fee).toFixed(2));
+          const utr = `UTR${Date.now()}${Math.floor(1000 + Math.random() * 9000)}`;
+
+          db.prepare(`
+            INSERT INTO payout_ledger (
+              farmer_id, order_id, gross_amount, platform_fee, net_payout,
+              bank_account_number, bank_ifsc, bank_name, utr_reference, status, settled_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'settled', CURRENT_TIMESTAMP)
+          `).run(
+            farmer.id, order.id, gross, fee, net,
+            farmer.bank_account_number || '000000000000',
+            farmer.bank_ifsc || 'SBIN0001234',
+            farmer.bank_name || 'State Bank of India',
+            utr
+          );
+        }
+      } catch (err) {
+        console.warn('[Auto Payout Release on Settled]:', err.message);
+      }
     } else {
       db.prepare('UPDATE orders SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(status, order_id);
     }
 
     // Mirror to Logistics table
     const logStatusMap = {
+      'farmer_packed': 'assigned',
+      'driver_picked': 'picked_up',
       'dispatched': 'picked_up',
       'in_transit': 'in_transit',
       'delivered': 'delivered'
@@ -258,11 +310,93 @@ const updateOrderStatus = async (req, res) => {
     if (logStatusMap[status]) {
       db.prepare('UPDATE logistics SET status = ? WHERE order_id = ?').run(logStatusMap[status], order_id);
     }
+
+    // Broadcast SSE update
+    sseService.broadcast('order:status_changed', {
+      orderId: order.id,
+      status,
+      timestamp: new Date().toISOString()
+    }, [order.buyer_id, order.farmer_id]);
     
-    res.json({ success: true, message: `Order status updated to ${status} and mirrored to logistics` });
+    res.json({ success: true, message: `Order status updated to ${status} and mirrored to logistics`, status });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
+};
+
+const disputeOrder = async (req, res) => {
+  try {
+    const order_id = req.params.id;
+    const { reason } = req.body;
+
+    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(order_id);
+    if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+
+    if (order.buyer_id !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Only buyer or admin can dispute order' });
+    }
+
+    if (order.status !== 'delivered') {
+      return res.status(400).json({ success: false, message: 'Only delivered orders can be disputed' });
+    }
+
+    db.prepare(`
+      UPDATE orders 
+      SET status = 'disputed', dispute_reason = ?, dispute_status = 'opened', updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(reason || 'Quality or quantity dispute', order_id);
+
+    sseService.broadcast('order:disputed', { orderId: order_id, reason }, [order.buyer_id, order.farmer_id]);
+
+    res.json({
+      success: true,
+      message: 'Dispute opened successfully. Admin review initiated.',
+      data: { orderId: order_id, status: 'disputed', reason }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+};
+
+const resolveDispute = async (req, res) => {
+  try {
+    const order_id = req.params.id;
+    const { resolution } = req.body; // 'settle_farmer' or 'refund_buyer'
+
+    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(order_id);
+    if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+
+    if (order.status !== 'disputed') {
+      return res.status(400).json({ success: false, message: 'Order is not in disputed state' });
+    }
+
+    if (resolution === 'refund_buyer') {
+      db.prepare(`
+        UPDATE orders 
+        SET status = 'cancelled', payment_status = 'refunded', dispute_status = 'resolved_refunded', updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `).run(order_id);
+
+      sseService.broadcast('order:dispute_resolved', { orderId: order_id, resolution: 'refund_buyer' }, [order.buyer_id, order.farmer_id]);
+      res.json({ success: true, message: 'Dispute resolved: Buyer refunded', status: 'cancelled' });
+    } else {
+      // Settle to farmer
+      db.prepare(`
+        UPDATE orders 
+        SET status = 'settled', payment_status = 'settled', dispute_status = 'resolved_settled', updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `).run(order_id);
+
+      sseService.broadcast('order:dispute_resolved', { orderId: order_id, resolution: 'settle_farmer' }, [order.buyer_id, order.farmer_id]);
+      res.json({ success: true, message: 'Dispute resolved: Farmer payout settled', status: 'settled' });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+};
+
+const streamOrders = async (req, res) => {
+  sseService.register(req, res, req.user.id);
 };
 
 const getOrderStats = async (req, res) => {
@@ -290,5 +424,8 @@ module.exports = {
   getMyOrders,
   getOrderById,
   updateOrderStatus,
-  getOrderStats
+  getOrderStats,
+  disputeOrder,
+  resolveDispute,
+  streamOrders
 };

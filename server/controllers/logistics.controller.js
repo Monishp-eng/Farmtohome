@@ -21,8 +21,8 @@ const getMyDeliveries = async (req, res) => {
         u_farmer.name as farmer_name,
         u_farmer.phone as farmer_phone,
         u_farmer.location as farmer_farm_location,
-        u_farmer.bank_account as farmer_bank_account,
-        u_farmer.ifsc_code as farmer_ifsc_code,
+        u_farmer.bank_account_number as farmer_bank_account,
+        u_farmer.bank_ifsc as farmer_ifsc_code,
         u_farmer.bank_name as farmer_bank_name,
         u_farmer.bank_verified as farmer_bank_verified,
         u_buyer.name as buyer_name,
@@ -124,7 +124,7 @@ const verifyFarmerBank = async (req, res) => {
 
     db.prepare(`
       UPDATE users 
-      SET bank_account = ?, ifsc_code = ?, bank_name = ?, bank_verified = 1
+      SET bank_account_number = ?, bank_ifsc = ?, bank_name = ?, bank_verified = 1
       WHERE id = ?
     `).run(bank_account, ifsc_code, bank_name || 'State Bank of India', farmer.id);
 
@@ -194,6 +194,8 @@ const updateDeliveryStatus = async (req, res) => {
       db.prepare('UPDATE orders SET status = "delivered", updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(delivery.order_id);
     } else if (delivery.order_id && status === 'in_transit') {
       db.prepare('UPDATE orders SET status = "in_transit", updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(delivery.order_id);
+    } else if (delivery.order_id && status === 'picked_up') {
+      db.prepare('UPDATE orders SET status = "driver_picked", updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(delivery.order_id);
     }
 
     res.json({ success: true, message: `Delivery updated to ${status}` });

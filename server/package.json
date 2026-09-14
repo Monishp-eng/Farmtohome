@@ -9,6 +9,7 @@
     "migrate": "node scripts/migrate.js",
     "seed": "node seed/seed.js",
     "test:layer1": "node test_layer1_foundation.js",
+    "test:layer2": "node test_layer2_core_api.js",
     "seed:pg": "node seed/seed.postgres.js",
     "import:prices": "node scripts/import_market_prices.js"
   },

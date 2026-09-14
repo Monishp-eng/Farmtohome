@@ -48,6 +48,17 @@ const bankDetailsValidation = [
   body('bank_ifsc').trim().toUpperCase().matches(/^[A-Z]{4}0[A-Z0-9]{6}$/).withMessage('Valid Indian IFSC code required (e.g. SBIN0001234)')
 ];
 
+const paymentCreateValidation = [
+  body('order_id').notEmpty().withMessage('Valid order_id is required')
+];
+
+const paymentVerifyValidation = [
+  body('order_id').notEmpty().withMessage('order_id is required'),
+  body('razorpay_order_id').notEmpty().withMessage('razorpay_order_id is required'),
+  body('razorpay_payment_id').notEmpty().withMessage('razorpay_payment_id is required'),
+  body('razorpay_signature').notEmpty().withMessage('razorpay_signature is required')
+];
+
 module.exports = {
   validate,
   registerValidation,
@@ -56,5 +67,7 @@ module.exports = {
   orderValidation,
   otpSendValidation,
   otpVerifyValidation,
-  bankDetailsValidation
+  bankDetailsValidation,
+  paymentCreateValidation,
+  paymentVerifyValidation
 };
