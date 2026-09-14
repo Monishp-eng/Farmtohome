@@ -11,8 +11,8 @@ function getPool() {
       connectionString: process.env.DATABASE_URL,
       ssl: isProduction || process.env.DATABASE_URL.includes('neon.tech') ? { rejectUnauthorized: false } : false,
       max: 20,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 5000,
+      idleTimeoutMillis: 60000,
+      connectionTimeoutMillis: 15000,
     });
 
     pool.on('error', (err) => {
