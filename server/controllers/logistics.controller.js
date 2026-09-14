@@ -1,6 +1,7 @@
 const db = require('../config/database');
 const mapsService = require('../services/maps.service');
 const smsService = require('../services/sms.service');
+const sseService = require('../services/sse.service');
 
 /**
  * Get all deliveries for the logged-in driver (or all if admin)
@@ -196,6 +197,33 @@ const updateDeliveryStatus = async (req, res) => {
       db.prepare('UPDATE orders SET status = "in_transit", updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(delivery.order_id);
     } else if (delivery.order_id && status === 'picked_up') {
       db.prepare('UPDATE orders SET status = "driver_picked", updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(delivery.order_id);
+    }
+
+    // Broadcast SSE to buyer/farmer dashboards for real-time tracking
+    if (delivery.order_id) {
+      try {
+        const order = db.prepare('SELECT buyer_id, farmer_id, quantity_kg FROM orders WHERE id = ?').get(delivery.order_id);
+        if (order) {
+          const orderStatus = status === 'picked_up' ? 'driver_picked' : status;
+          sseService.broadcast('delivery:progressed', {
+            deliveryId: delivery_id,
+            orderId: delivery.order_id,
+            status: orderStatus,
+            timestamp: new Date().toISOString()
+          }, [order.buyer_id, order.farmer_id]);
+
+          // SMS to buyer on key delivery milestones
+          const buyer = db.prepare('SELECT phone FROM users WHERE id = ?').get(order.buyer_id);
+          if (buyer?.phone) {
+            const msgs = {
+              'picked_up': `KisanSetu: Your order #${delivery.order_id} has been picked up by driver! On its way.`,
+              'in_transit': `KisanSetu: Your order #${delivery.order_id} is in transit. Arriving soon!`,
+              'delivered': `KisanSetu: Your order #${delivery.order_id} has been delivered! Thank you.`
+            };
+            if (msgs[status]) smsService.sendSMS(buyer.phone, msgs[status]).catch(() => {});
+          }
+        }
+      } catch(e) {}
     }
 
     res.json({ success: true, message: `Delivery updated to ${status}` });

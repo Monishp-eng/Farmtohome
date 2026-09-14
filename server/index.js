@@ -108,6 +108,26 @@ async function start() {
     console.log('Database ready.');
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
+
+      // Auto-Cancel Worker: Every 5 minutes, cancel unconfirmed orders past their 2-hour deadline
+      setInterval(() => {
+        try {
+          const now = new Date().toISOString();
+          const expired = db.prepare(
+            "SELECT id, buyer_id, farmer_id FROM orders WHERE status = 'placed' AND auto_cancel_at IS NOT NULL AND auto_cancel_at < ?"
+          ).all(now);
+
+          if (expired.length > 0) {
+            expired.forEach(order => {
+              db.prepare("UPDATE orders SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP WHERE id = ?").run(order.id);
+              db.prepare("UPDATE products SET quantity_kg = quantity_kg + (SELECT quantity_kg FROM orders WHERE id = ?) WHERE id = (SELECT product_id FROM orders WHERE id = ?)").run(order.id, order.id);
+            });
+            console.log(`[Auto-Cancel Worker] Cancelled ${expired.length} unconfirmed order(s) past 2-hour deadline.`);
+          }
+        } catch (err) {
+          console.warn('[Auto-Cancel Worker Error]:', err.message);
+        }
+      }, 5 * 60 * 1000); // Run every 5 minutes
     });
   } catch (err) {
     console.error('Failed to initialize database:', err);

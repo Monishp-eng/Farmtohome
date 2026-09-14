@@ -2,6 +2,7 @@ const db = require('../config/database');
 const { dispatchFarmerSMS } = require('./ivr.controller');
 const mapsService = require('../services/maps.service');
 const sseService = require('../services/sse.service');
+const smsService = require('../services/sms.service');
 
 const placeOrder = async (req, res) => {
   try {
@@ -317,6 +318,36 @@ const updateOrderStatus = async (req, res) => {
       status,
       timestamp: new Date().toISOString()
     }, [order.buyer_id, order.farmer_id]);
+
+    // SMS Notifications at every lifecycle stage (M1 + M4 acceptance criteria)
+    try {
+      const buyer = db.prepare('SELECT phone, name FROM users WHERE id = ?').get(order.buyer_id);
+      const farmer = db.prepare('SELECT phone, name FROM users WHERE id = ?').get(order.farmer_id);
+      const productName = order.product_name || 'your order';
+
+      const smsTemplates = {
+        'confirmed':     { farmer: `KisanSetu: Order #${order_id} confirmed! ${order.quantity_kg}kg ${productName}. Please pack and hand over to driver.`,
+                           buyer:  `KisanSetu: Order #${order_id} confirmed by farmer! ${order.quantity_kg}kg ${productName} being prepared.` },
+        'farmer_packed':  { farmer: `KisanSetu: Order #${order_id} marked packed. Driver will arrive for pickup shortly.`,
+                           buyer:  `KisanSetu: Order #${order_id} packed by farmer! Pickup by driver is being arranged.` },
+        'driver_picked':  { farmer: `KisanSetu: Driver has picked up Order #${order_id}. In transit to buyer.`,
+                           buyer:  `KisanSetu: Order #${order_id} picked up by driver! On its way to you.` },
+        'in_transit':     { buyer:  `KisanSetu: Order #${order_id} is now in transit. Arriving soon!` },
+        'delivered':      { farmer: `KisanSetu: Order #${order_id} delivered! Your payout of Rs ${order.farmer_earnings} will be released shortly.`,
+                           buyer:  `KisanSetu: Order #${order_id} delivered successfully! Thank you for buying direct from farmers.` },
+        'settled':        { farmer: `KisanSetu: Payment settled! Rs ${order.farmer_earnings} (98% direct) for Order #${order_id} credited to your bank.` },
+        'cancelled':      { farmer: `KisanSetu: Order #${order_id} has been cancelled.`,
+                           buyer:  `KisanSetu: Order #${order_id} cancelled. Refund initiated if payment was made.` }
+      };
+
+      const template = smsTemplates[status];
+      if (template) {
+        if (template.farmer && farmer?.phone) smsService.sendSMS(farmer.phone, template.farmer).catch(() => {});
+        if (template.buyer && buyer?.phone)   smsService.sendSMS(buyer.phone, template.buyer).catch(() => {});
+      }
+    } catch (smsErr) {
+      console.warn('[Order SMS Notification]:', smsErr.message);
+    }
     
     res.json({ success: true, message: `Order status updated to ${status} and mirrored to logistics`, status });
   } catch (error) {
@@ -376,6 +407,9 @@ const resolveDispute = async (req, res) => {
         SET status = 'cancelled', payment_status = 'refunded', dispute_status = 'resolved_refunded', updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
       `).run(order_id);
+
+      // Also update payments table status
+      try { db.prepare("UPDATE payments SET status = 'refunded' WHERE order_id = ?").run(order_id); } catch(e) {}
 
       sseService.broadcast('order:dispute_resolved', { orderId: order_id, resolution: 'refund_buyer' }, [order.buyer_id, order.farmer_id]);
       res.json({ success: true, message: 'Dispute resolved: Buyer refunded', status: 'cancelled' });
