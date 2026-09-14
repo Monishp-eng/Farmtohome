@@ -1,6 +1,7 @@
 const initSqlJs = require('sql.js');
 const path = require('path');
 const fs = require('fs');
+const postgres = require('./postgres');
 
 const dataDir = path.join(__dirname, '..', 'data');
 if (!fs.existsSync(dataDir)) {
@@ -15,9 +16,20 @@ class DatabaseWrapper {
     this.db = null;
     this.dbPath = dbPath;
     this._ready = false;
+    this._initPromise = null;
+  }
+
+  async ensureInitialized() {
+    if (!this._ready) {
+      if (!this._initPromise) {
+        this._initPromise = this.initialize();
+      }
+      await this._initPromise;
+    }
   }
 
   async initialize() {
+    if (this._ready) return this;
     const SQL = await initSqlJs();
     
     // Load existing database or create new one
@@ -295,6 +307,68 @@ class DatabaseWrapper {
   exec(sql) {
     this.db.run(sql);
     this._save();
+  }
+
+  // Check if PostgreSQL engine is enabled via DATABASE_URL
+  isPostgres() {
+    return Boolean(process.env.DATABASE_URL);
+  }
+
+  // Unified asynchronous query for PostgreSQL with SQLite fallback
+  async query(sql, params = []) {
+    if (this.isPostgres()) {
+      let index = 1;
+      const pgSql = sql.replace(/\?/g, () => `$${index++}`);
+      return await postgres.query(pgSql, params);
+    }
+    await this.ensureInitialized();
+    const isSelect = /^\s*SELECT/i.test(sql);
+    if (isSelect) {
+      const rows = this.prepare(sql).all(...params);
+      return { rows, rowCount: rows.length };
+    } else {
+      const result = this.prepare(sql).run(...params);
+      return { rows: [], rowCount: result.changes, lastInsertRowid: result.lastInsertRowid };
+    }
+  }
+
+  async get(sql, params = []) {
+    if (this.isPostgres()) {
+      let index = 1;
+      const pgSql = sql.replace(/\?/g, () => `$${index++}`);
+      const res = await postgres.query(pgSql, params);
+      return res.rows[0] || null;
+    }
+    await this.ensureInitialized();
+    return this.prepare(sql).get(...params) || null;
+  }
+
+  async all(sql, params = []) {
+    if (this.isPostgres()) {
+      let index = 1;
+      const pgSql = sql.replace(/\?/g, () => `$${index++}`);
+      const res = await postgres.query(pgSql, params);
+      return res.rows;
+    }
+    await this.ensureInitialized();
+    return this.prepare(sql).all(...params);
+  }
+
+  async run(sql, params = []) {
+    if (this.isPostgres()) {
+      let index = 1;
+      let pgSql = sql.replace(/\?/g, () => `$${index++}`);
+      if (/^\s*INSERT/i.test(pgSql) && !/RETURNING/i.test(pgSql)) {
+        pgSql += ' RETURNING id';
+      }
+      const res = await postgres.query(pgSql, params);
+      return {
+        lastInsertRowid: res.rows[0]?.id || null,
+        changes: res.rowCount
+      };
+    }
+    await this.ensureInitialized();
+    return this.prepare(sql).run(...params);
   }
 
   // Close database

@@ -13,7 +13,7 @@ const authenticateToken = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (ex) {
-    res.status(400).json({ success: false, message: 'Invalid token.' });
+    res.status(401).json({ success: false, message: 'Invalid or expired token.' });
   }
 };
 

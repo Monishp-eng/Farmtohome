@@ -130,6 +130,35 @@ async function runTests() {
     if (!res.data.accessToken || !res.data.refreshToken) throw new Error('Tokens missing from phone login');
   });
 
+  // 8. Auth Header Validation: RFC 6750 HTTP 401 on Invalid Token
+  await assert('Authentication middleware returns HTTP 401 Unauthorized for invalid token', async () => {
+    const res = await request('GET', '/api/auth/profile', null, {
+      Authorization: 'Bearer totally_invalid_token_xyz'
+    });
+    if (res.status !== 401) throw new Error(`Expected HTTP 401, got ${res.status}`);
+  });
+
+  // 9. Dual-Engine DB Abstraction: async query/get/all interface
+  await assert('Dual-Engine Database interface executes async queries seamlessly', async () => {
+    const db = require('./config/database');
+    const userRow = await db.get('SELECT id, email, role FROM users WHERE email = ?', [testEmail]);
+    if (!userRow || userRow.email !== testEmail) throw new Error('Failed to query user via db.get()');
+
+    const allUsers = await db.all('SELECT id FROM users LIMIT 5');
+    if (!Array.isArray(allUsers) || allUsers.length === 0) throw new Error('Failed to query users via db.all()');
+
+    const qResult = await db.query('SELECT count(*) as count FROM users');
+    if (!qResult || !qResult.rows || qResult.rows.length === 0) throw new Error('Failed to execute db.query()');
+  });
+
+  // 10. Refresh Token Expiration & Invalidation Check
+  await assert('Refresh Token Handler rejects expired or forged refresh tokens with 401', async () => {
+    const res = await request('POST', '/api/auth/refresh-token', {
+      refreshToken: 'forged_or_tampered_token_string'
+    });
+    if (res.status !== 401) throw new Error(`Expected HTTP 401, got ${res.status}`);
+  });
+
   console.log('\n====================================================');
   console.log(`📊 Test Results: ${passed} PASSED, ${failed} FAILED`);
   if (failed > 0) {

@@ -50,10 +50,13 @@ class OTPService {
       dltId: 'DLT_OTP_1001'
     });
 
+    const isProduction = process.env.NODE_ENV === 'production' && process.env.ALLOW_DEMO_OTP !== 'true';
+
     return {
       success: true,
       phone: cleanPhone,
-      otp, // returned for dev & simulation testing
+      // Only include raw OTP in development/test mode or when explicitly allowed
+      ...(isProduction ? {} : { otp }),
       expiresAt,
       smsStatus: smsResult.status
     };
@@ -68,10 +71,11 @@ class OTPService {
   verifyOTP(phone, inputCode) {
     const cleanPhone = (phone || '').replace(/[^0-9]/g, '').slice(-10);
     const record = this.otpStore.get(cleanPhone);
+    const allowDemoKey = process.env.NODE_ENV !== 'production' || process.env.ALLOW_DEMO_OTP === 'true';
 
     if (!record) {
-      // Default fallback demo verification for testing
-      if (inputCode === '1234' || inputCode === '0000') {
+      // Default fallback demo verification for development and testing only
+      if (allowDemoKey && (inputCode === '1234' || inputCode === '0000')) {
         return { valid: true, message: 'OTP verified successfully (Demo Master Key)' };
       }
       return { valid: false, message: 'No OTP requested for this phone number or expired' };
@@ -89,8 +93,11 @@ class OTPService {
 
     record.attempts += 1;
 
-    // Direct match or master demo key
-    if (record.code === String(inputCode).trim() || inputCode === '1234') {
+    // Direct match or master demo key (only in non-production/demo mode)
+    const isDirectMatch = record.code === String(inputCode).trim();
+    const isDemoMatch = allowDemoKey && (inputCode === '1234' || inputCode === '0000');
+
+    if (isDirectMatch || isDemoMatch) {
       record.verified = true;
       return { valid: true, message: 'OTP verified successfully' };
     }

@@ -28,7 +28,7 @@ const generateTokens = (user) => {
     db.prepare('INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)')
       .run(user.id, refreshToken, expiresAt);
   } catch (err) {
-    // If table not yet present or unique constraint, ignore or clean up
+    console.warn('[Refresh Token Store Warning]:', err.message);
   }
 
   return {
@@ -248,15 +248,24 @@ const refreshTokenHandler = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Refresh token not recognized or revoked' });
     }
 
+    // 2.1 Verify token has not expired
+    if (record.expires_at && new Date(record.expires_at) <= new Date()) {
+      try {
+        db.prepare('DELETE FROM refresh_tokens WHERE token = ?').run(refreshToken);
+      } catch (e) {}
+      return res.status(401).json({ success: false, message: 'Refresh token has expired' });
+    }
+
     // 3. Look up user
     const user = db.prepare('SELECT id, name, email, role, phone FROM users WHERE id = ?').get(decoded.id);
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    // 4. Delete old refresh token (rotation)
+    // 4. Delete old refresh token and purge any expired tokens for this user (rotation + cleanup)
     try {
       db.prepare('DELETE FROM refresh_tokens WHERE token = ?').run(refreshToken);
+      db.prepare('DELETE FROM refresh_tokens WHERE user_id = ? AND expires_at < ?').run(decoded.id, new Date().toISOString());
     } catch (e) {}
 
     // 5. Issue new access + refresh token pair

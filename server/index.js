@@ -50,6 +50,7 @@ app.use('/api/', apiLimiter);
 app.get('/api/health', async (req, res) => {
   const mem = process.memoryUsage();
   let dbStatus = { engine: 'sqlite', status: 'connected' };
+  let isHealthy = true;
 
   if (process.env.DATABASE_URL) {
     const pgCheck = await postgres.testConnection();
@@ -59,10 +60,15 @@ app.get('/api/health', async (req, res) => {
       version: pgCheck.version ? pgCheck.version.split(' ')[0] : undefined,
       error: pgCheck.error
     };
+    if (!pgCheck.connected) {
+      isHealthy = false;
+    }
   }
 
-  res.json({
-    status: 'healthy',
+  const statusCode = isHealthy ? 200 : 503;
+
+  res.status(statusCode).json({
+    status: isHealthy ? 'healthy' : 'unhealthy',
     timestamp: new Date().toISOString(),
     uptime_seconds: Math.floor(process.uptime()),
     database: dbStatus,
