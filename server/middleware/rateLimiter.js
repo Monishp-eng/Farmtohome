@@ -1,9 +1,8 @@
 const rateLimit = require('express-rate-limit');
 
-// Strict limiter for authentication & OTP endpoints to prevent brute-force & spam
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // max 20 attempts per IP
+  max: process.env.NODE_ENV === 'production' ? 20 : 1000, // relaxed for dev/test suites
   standardHeaders: true,
   legacyHeaders: false,
   message: {

@@ -3,7 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const { initializeDatabase } = require('./config/database');
+const db = require('./config/database');
+const { initializeDatabase } = db;
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -120,8 +121,10 @@ async function start() {
 
           if (expired.length > 0) {
             expired.forEach(order => {
-              db.prepare("UPDATE orders SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP WHERE id = ?").run(order.id);
-              db.prepare("UPDATE products SET quantity_kg = quantity_kg + (SELECT quantity_kg FROM orders WHERE id = ?) WHERE id = (SELECT product_id FROM orders WHERE id = ?)").run(order.id, order.id);
+              const res = db.prepare("UPDATE orders SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP WHERE id = ? AND status = 'placed'").run(order.id);
+              if (res && res.changes > 0) {
+                db.prepare("UPDATE products SET quantity_kg = quantity_kg + (SELECT quantity_kg FROM orders WHERE id = ?) WHERE id = (SELECT product_id FROM orders WHERE id = ?)").run(order.id, order.id);
+              }
             });
             console.log(`[Auto-Cancel Worker] Cancelled ${expired.length} unconfirmed order(s) past 2-hour deadline.`);
           }

@@ -243,7 +243,8 @@ const optimizeRoute = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Origin and destinations array are required' });
     }
 
-    const response = await globalThis.fetch('http://127.0.0.1:5001/api/optimize-route', {
+    const aiServiceUrl = process.env.AI_SERVICE_URL || 'http://127.0.0.1:5001';
+    const response = await globalThis.fetch(`${aiServiceUrl}/api/optimize-route`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ origin, destinations })
