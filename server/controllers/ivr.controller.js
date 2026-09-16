@@ -1165,7 +1165,7 @@ const handleTwilioGather = async (req, res) => {
   const digits = (req.body?.Digits || req.query?.Digits || '').trim();
   const speech = (req.body?.SpeechResult || req.query?.SpeechResult || '').trim();
   const step = req.query?.step || 'LANG';
-  const lang = req.query?.lang || 'hi';
+  const lang = req.query?.lang || 'ta';
   const fromPhone = req.body?.From || req.body?.Caller || '7989998568';
   const cleanPhone = fromPhone.replace(/[^0-9]/g, '').slice(-10);
 
@@ -1173,26 +1173,28 @@ const handleTwilioGather = async (req, res) => {
 
   console.log(`[Twilio Webhook Gather] Step: ${step}, Lang: ${lang}, Digits: ${digits}, Speech: "${speech}"`);
 
-  // 1. LANGUAGE SELECTION STEP
+  // 1. LANGUAGE SELECTION STEP (Defaults to Tamil Primary)
   if (step === 'LANG') {
-    let chosenLang = 'hi';
-    if (digits === '2') chosenLang = 'ta';
+    let chosenLang = 'ta';
+    if (digits === '1') chosenLang = 'ta';
+    else if (digits === '2') chosenLang = 'hi';
     else if (digits === '3') chosenLang = 'en';
-    else if (digits === '4') chosenLang = 'mr';
+    else if (digits === '4') chosenLang = 'te';
+    else if (digits === '5') chosenLang = 'kn';
 
     if (chosenLang === 'ta') {
       return res.send(`
         <Response>
           <Gather action="${baseUrl}/api/ivr/twilio-gather?step=MENU&amp;lang=ta" numDigits="1" method="POST" timeout="8">
-            <Say voice="Polly.Aditi" language="ta-IN">
-              வணக்கம்! உழவன் சேவைக்கு நல்வரவு.
-              விளைச்சல் விற்க 1 அழுத்தவும்.
-              மண்டி விலை அறிய 2 அழுத்தவும்.
-              ஆர்டர் மற்றும் வருமானம் அறிய 3 அழுத்தவும்.
-              பயிர் மருத்துவருக்கு 4 அழுத்தவும்.
+            <Say language="ta-IN">
+              வணக்கம்! கிசான் சேது விவசாயி உதவி மையத்திற்கு நல்வரவு.
+              உங்கள் விளைச்சலை விற்க 1 அழுத்தவும்.
+              இன்றைய மண்டி விலை நிலவரம் அறிய 2 அழுத்தவும்.
+              உங்கள் ஆர்டர் மற்றும் வருமானம் அறிய 3 அழுத்தவும்.
+              பயிர் மருத்துவர் ஆலோசனைக்கு 4 அழுத்தவும்.
             </Say>
           </Gather>
-          <Say voice="Polly.Aditi" language="ta-IN">நன்றி.</Say>
+          <Say language="ta-IN">நன்றி! வணக்கம்.</Say>
         </Response>
       `);
     } else if (chosenLang === 'en') {
