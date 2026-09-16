@@ -90,8 +90,9 @@ class DatabaseWrapper {
     try { this.db.run("ALTER TABLE users ADD COLUMN notification_language TEXT DEFAULT 'en';"); } catch(e) {}
     try { this.db.run("ALTER TABLE users ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP;"); } catch(e) {}
     try { this.db.run("ALTER TABLE orders ADD COLUMN dispute_reason TEXT;"); } catch(e) {}
-    try { this.db.run("ALTER TABLE orders ADD COLUMN dispute_status TEXT DEFAULT 'none';"); } catch(e) {}
     try { this.db.run("ALTER TABLE orders ADD COLUMN auto_cancel_at DATETIME;"); } catch(e) {}
+    try { this.db.run("ALTER TABLE ivr_logs ADD COLUMN duration_seconds INTEGER DEFAULT 0;"); } catch(e) {}
+    try { this.db.run("ALTER TABLE ivr_logs ADD COLUMN outcome TEXT DEFAULT 'COMPLETED';"); } catch(e) {}
 
     // Safe migration: check if orders table allows 'placed' status, if not recreate with expanded constraint
     try {
@@ -308,6 +309,74 @@ class DatabaseWrapper {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS ivr_recordings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        recording_sid TEXT,
+        call_sid TEXT,
+        caller_phone TEXT,
+        title TEXT,
+        language TEXT DEFAULT 'ta',
+        audio_url TEXT,
+        duration TEXT,
+        duration_seconds INTEGER DEFAULT 0,
+        transcription TEXT,
+        summary TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS whatsapp_messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        message_sid TEXT,
+        from_phone TEXT NOT NULL,
+        to_phone TEXT,
+        body TEXT,
+        media_url TEXT,
+        direction TEXT DEFAULT 'inbound' CHECK(direction IN ('inbound','outbound')),
+        command_type TEXT,
+        status TEXT DEFAULT 'delivered',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Seed realistic sample IVR analytics logs and call recordings if empty
+    try {
+      const logCount = this.db.exec("SELECT COUNT(*) as count FROM ivr_logs");
+      const count = logCount && logCount[0] && logCount[0].values ? logCount[0].values[0][0] : 0;
+      if (count === 0) {
+        this.db.run(`
+          INSERT INTO ivr_logs (call_sid, caller_phone, language, step, transcription, detected_crop, detected_quantity, detected_price, detected_location, duration_seconds, outcome, created_at)
+          VALUES 
+          ('CA101', '9842109842', 'ta', 'CONFIRM_LISTING', '250 kg Tomato at 32 Rs Salem', 'Tomato', 250, 32, 'Salem', 84, 'LISTING_CREATED', datetime('now', '-2 hours')),
+          ('CA102', '9789123456', 'ta', 'CONFIRM_LISTING', '1000 kg Onion at 28 Rs Nashik', 'Onion', 1000, 28, 'Nashik', 128, 'LISTING_CREATED', datetime('now', '-5 hours')),
+          ('CA103', '9123456780', 'hi', 'ASK_PRODUCE', 'Early Blight symptoms doctor advice', 'Potato', 0, 0, 'Agra', 54, 'QUERY_RESOLVED', datetime('now', '-1 day')),
+          ('CA104', '9443123456', 'te', 'CONFIRM_LISTING', '500 kg Mirchi at 65 Rs Guntur', 'Green Chilli', 500, 65, 'Guntur', 95, 'LISTING_CREATED', datetime('now', '-1 day')),
+          ('CA105', '9880123456', 'kn', 'MENU', 'Dropped during menu selection', NULL, 0, 0, 'Mysuru', 18, 'DROPPED', datetime('now', '-2 days')),
+          ('CA106', '9845012345', 'en', 'CONFIRM_LISTING', '300 kg Rice at 45 Rs Karnal', 'Basmati Rice', 300, 45, 'Karnal', 110, 'LISTING_CREATED', datetime('now', '-2 days')),
+          ('CA107', '9740123456', 'kn', 'CONFIRM_LISTING', '400 kg Ragi at 35 Rs Mandya', 'Ragi', 400, 35, 'Mandya', 76, 'LISTING_CREATED', datetime('now', '-3 days')),
+          ('CA108', '9988123456', 'te', 'ASK_PRODUCE', 'Dropped during quantity input', 'Tomato', 0, 0, 'Madanapalle', 22, 'DROPPED', datetime('now', '-3 days'))
+        `);
+      }
+
+      const recCount = this.db.exec("SELECT COUNT(*) as count FROM ivr_recordings");
+      const rCount = recCount && recCount[0] && recCount[0].values ? recCount[0].values[0][0] : 0;
+      if (rCount === 0) {
+        this.db.run(`
+          INSERT INTO ivr_recordings (recording_sid, call_sid, caller_phone, title, language, audio_url, duration, duration_seconds, transcription, summary, created_at)
+          VALUES
+          ('RE001', 'CA101', '+91 9842109842', 'Farmer Murugan K. — Tomato Harvest Listing (Tamil)', 'ta', 'https://actions.google.com/sounds/v1/ambiences/outdoor_market.ogg', '01:24', 84, 'வணக்கம். சேலத்தில் இருந்து 250 கிலோ தக்காளி 32 ரூபாய்க்கு விற்க வேண்டும்.', 'Listed 250kg Salem Hybrid Tomatoes @ ₹32/kg. Grade A, ready for farm gate cold dispatch.', datetime('now', '-2 hours')),
+          ('RE002', 'CA102', '+91 9789123456', 'FPO Selvam R. — Bulk Red Onion Consultation (Tamil)', 'ta', 'https://actions.google.com/sounds/v1/ambiences/outdoor_market.ogg', '02:08', 128, '1000 கிலோ நாசிக் வெங்காயம் 28 ரூபாய்க்கு தயார்.', 'Configured 1,000kg Nashik Red Onions @ ₹28/kg. Scheduled refrigerated pickup with Bangalore retail buyer.', datetime('now', '-5 hours')),
+          ('RE003', 'CA103', '+91 9123456780', 'Kisan Doctor Voice Query — Leaf Spot Diagnosis (Hindi)', 'hi', 'https://actions.google.com/sounds/v1/ambiences/outdoor_market.ogg', '00:54', 54, 'नमस्ते। आलू की पत्तियों पर भूरे धब्बे हैं। क्या उपाय करें?', 'Diagnosed Early Blight on potato crop. Recommended Copper Oxychloride spray.', datetime('now', '-1 day')),
+          ('RE004', 'CA104', '+91 9443123456', 'Farmer Venkat R. — Guntur Chilli Listing (Telugu)', 'te', 'https://actions.google.com/sounds/v1/ambiences/outdoor_market.ogg', '01:35', 95, 'నమస్కారం! గుంటూరు నుండి 500 కిలోల మిర్చి 65 రూపాయలకు అమ్మాలి.', 'Listed 500kg Guntur Green Chillies @ ₹65/kg directly via Telugu IVR.', datetime('now', '-1 day')),
+          ('RE005', 'CA107', '+91 9740123456', 'Farmer Basavaraj — Mandya Ragi Harvest (Kannada)', 'kn', 'https://actions.google.com/sounds/v1/ambiences/outdoor_market.ogg', '01:16', 76, 'ನಮಸ್ಕಾರ! ಮಂಡ್ಯದಿಂದ 400 ಕೆಜಿ ರಾಗಿ 35 ರೂಪಾಯಿಗೆ ಮಾರಾಟ ಮಾಡಲು.', 'Listed 400kg Organic Ragi @ ₹35/kg via Kannada Voice Helpline.', datetime('now', '-3 days'))
+        `);
+      }
+    } catch(seedErr) {
+      console.warn('[IVR seed note]:', seedErr.message);
+    }
   }
 
   // Mimic better-sqlite3's prepare() API

@@ -8,7 +8,9 @@ const {
   handleUSSD, 
   handleIVRAction, 
   getDialphoneLogs,
-  triggerOutboundCall
+  triggerOutboundCall,
+  getIVRAnalytics,
+  getIVRRecordings
 } = require('../controllers/ivr.controller');
 const handleTwilioGather = require('../controllers/twilio.webhook');
 
@@ -34,5 +36,9 @@ router.post('/call', handleIVRAction);
 
 // 6. Live Activity & Delivery Logs
 router.get('/logs', getDialphoneLogs);
+
+// 7. Layer 5 M4 Telephony Analytics & Call Recordings
+router.get('/analytics', getIVRAnalytics);
+router.get('/recordings', getIVRRecordings);
 
 module.exports = router;

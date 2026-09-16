@@ -32,7 +32,7 @@ async function runBrowserTests() {
   });
 
   let passed = 0;
-  let total = 7;
+  let total = 9;
 
   // Helper assert
   async function testStep(name, fn) {
@@ -169,12 +169,11 @@ async function runBrowserTests() {
   await testStep('4. 2G GSM Telephony & SMS Gateway Simulator', async () => {
     await page.goto('http://localhost:3000/dialphone', { waitUntil: 'networkidle2', timeout: 15000 });
 
-    // Switch to SMS Gateway Tab
+    // Switch to SMS Gateway Tab using direct tab ID
     const switchedTab = await page.evaluate(() => {
-      const tabs = Array.from(document.querySelectorAll('button, div'));
-      const smsTab = tabs.find(t => t.textContent.includes('SMS Gateway'));
-      if (smsTab) {
-        smsTab.click();
+      const tab = document.getElementById('tab-sms-gateway');
+      if (tab) {
+        tab.click();
         return true;
       }
       return false;
@@ -182,7 +181,7 @@ async function runBrowserTests() {
 
     if (!switchedTab) throw new Error('Could not find SMS Gateway tab');
 
-    await sleep(400);
+    await sleep(600);
 
     // Click quick SMS preset chip [SELL Tomato 500 25 Salem]
     await page.evaluate(() => {
@@ -198,8 +197,70 @@ async function runBrowserTests() {
       if (sendBtn) sendBtn.click();
     });
 
-    await sleep(1400);
+    await sleep(1500);
     await page.screenshot({ path: path.join(SCREENSHOT_DIR, '06_dialphone_sms.png'), fullPage: false });
+  });
+
+  // TEST 5: WhatsApp Business Bot Simulator (Layer 5 M4)
+  await testStep('5. WhatsApp Business Bot Webhook Simulator', async () => {
+    // Switch to WhatsApp tab using direct tab ID
+    const switchedWa = await page.evaluate(() => {
+      const waTab = document.getElementById('tab-whatsapp-bot');
+      if (waTab) {
+        waTab.click();
+        return true;
+      }
+      return false;
+    });
+
+    if (!switchedWa) throw new Error('Could not find WhatsApp Business Bot tab');
+
+    await sleep(600);
+
+    // Click 1-Click WhatsApp Quick Action Preset: SELL Tomato 200 25 Salem
+    await page.evaluate(() => {
+      const btns = Array.from(document.querySelectorAll('button'));
+      const sellChip = btns.find(b => b.textContent.includes('SELL Tomato 200 25 Salem'));
+      if (sellChip) sellChip.click();
+    });
+
+    // Wait for webhook round-trip
+    await sleep(2000);
+
+    const hasWaReply = await page.evaluate(() => {
+      return document.body.textContent.includes('Marketplace Listing Confirmed') || 
+             document.body.textContent.includes('KisanSetu Official Bot') ||
+             document.body.textContent.includes('KisanSetu WhatsApp');
+    });
+
+    if (!hasWaReply) throw new Error('WhatsApp Bot response not found in chat thread');
+
+    await page.screenshot({ path: path.join(SCREENSHOT_DIR, '10_whatsapp_business_bot.png'), fullPage: false });
+  });
+
+  // TEST 6: Telephony & IVR Analytics Hub (Layer 5 M4)
+  await testStep('6. Telephony & IVR Analytics & Drop-off Funnel', async () => {
+    // Switch to Analytics tab using direct tab ID
+    const switchedAnalytics = await page.evaluate(() => {
+      const aTab = document.getElementById('tab-analytics');
+      if (aTab) {
+        aTab.click();
+        return true;
+      }
+      return false;
+    });
+
+    if (!switchedAnalytics) throw new Error('Could not find Telephony & IVR Analytics tab');
+
+    await sleep(800);
+
+    const hasAnalyticsCards = await page.evaluate(() => {
+      return document.body.textContent.includes('Total Voice Calls') && document.body.textContent.includes('Drop-Off Funnel');
+    });
+
+    if (!hasAnalyticsCards) throw new Error('IVR Analytics KPI cards or Drop-off funnel not rendered');
+
+    await page.screenshot({ path: path.join(SCREENSHOT_DIR, '11_telephony_analytics_hub.png'), fullPage: false });
   });
 
   // Helper for Authenticated Tests: Login API and set localStorage
@@ -223,8 +284,8 @@ async function runBrowserTests() {
     if (!loginRes.success) throw new Error(`Login failed for ${email}: ${loginRes.msg}`);
   }
 
-  // TEST 5: Buyer Dashboard & PDF Invoice
-  await testStep('5. Buyer Dashboard & PDF Invoice Generation', async () => {
+  // TEST 7: Buyer Dashboard & PDF Invoice
+  await testStep('7. Buyer Dashboard & PDF Invoice Generation', async () => {
     await loginAs('priya@example.com', 'password123');
     await page.goto('http://localhost:3000/buyer/dashboard', { waitUntil: 'networkidle2', timeout: 15000 });
 
@@ -238,8 +299,8 @@ async function runBrowserTests() {
     await page.screenshot({ path: path.join(SCREENSHOT_DIR, '07_buyer_dashboard.png'), fullPage: false });
   });
 
-  // TEST 6: Farmer Dashboard & Revenue Analytics
-  await testStep('6. Farmer Dashboard & Recharts Revenue Overview', async () => {
+  // TEST 8: Farmer Dashboard & Revenue Analytics
+  await testStep('8. Farmer Dashboard & Recharts Revenue Overview', async () => {
     await loginAs('ramesh@example.com', 'password123');
     await page.goto('http://localhost:3000/farmer/dashboard', { waitUntil: 'networkidle2', timeout: 15000 });
 
@@ -253,8 +314,8 @@ async function runBrowserTests() {
     await page.screenshot({ path: path.join(SCREENSHOT_DIR, '08_farmer_dashboard.png'), fullPage: false });
   });
 
-  // TEST 7: Logistics Dashboard & Dispatch Tracker
-  await testStep('7. Logistics Dashboard & Fleet Hub', async () => {
+  // TEST 9: Logistics Dashboard & Dispatch Tracker
+  await testStep('9. Logistics Dashboard & Fleet Hub', async () => {
     await loginAs('kiran@example.com', 'password123');
     await page.goto('http://localhost:3000/logistics/dashboard', { waitUntil: 'networkidle2', timeout: 15000 });
 
