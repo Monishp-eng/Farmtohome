@@ -213,9 +213,9 @@ const handleTwilioGather = async (req, res) => {
 <Response>
   <Pause length="1"/>
   <Gather action="${baseUrl}/api/ivr/twilio-gather?step=CONFIRM&amp;lang=${lang}&amp;crop=${encodeURIComponent(crop)}&amp;qty=${qty}&amp;price=${price}&amp;address=${encodeURIComponent(address)}&amp;phone=${cleanPhone}" numDigits="1" method="POST" timeout="10">
-    <Say language="${lang === 'ta' ? 'ta-IN' : lang === 'en' ? 'en-IN' : 'hi-IN'}">${verifyMsg}</Say>
+    <Say ${lang === 'ta' ? 'voice="Polly.Valluvar" language="ta-IN"' : lang === 'en' ? 'language="en-IN"' : 'voice="Polly.Aditi" language="hi-IN"'}>${verifyMsg}</Say>
   </Gather>
-  <Say language="ta-IN">உறுதிப்படுத்த ஒன்று அழுத்தவும்.</Say>
+  <Say voice="Polly.Valluvar" language="ta-IN">உறுதிப்படுத்த ஒன்று அழுத்தவும்.</Say>
 </Response>`);
     }
 
@@ -237,7 +237,7 @@ const handleTwilioGather = async (req, res) => {
         return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
-  <Say language="${lang === 'ta' ? 'ta-IN' : lang === 'en' ? 'en-IN' : 'hi-IN'}">${retryMsg}</Say>
+  <Say ${lang === 'ta' ? 'voice="Polly.Valluvar" language="ta-IN"' : lang === 'en' ? 'language="en-IN"' : 'voice="Polly.Aditi" language="hi-IN"'}>${retryMsg}</Say>
   <Record action="${baseUrl}/api/ivr/twilio-gather?step=PRODUCE&amp;lang=${lang}&amp;phone=${cleanPhone}" method="POST" maxLength="15" playBeep="true" timeout="4" trim="trim-silence"/>
 </Response>`);
       }
@@ -296,16 +296,16 @@ const handleTwilioGather = async (req, res) => {
       return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
-  <Say language="${lang === 'ta' ? 'ta-IN' : lang === 'en' ? 'en-IN' : 'hi-IN'}">${successMsg}</Say>
+  <Say ${lang === 'ta' ? 'voice="Polly.Valluvar" language="ta-IN"' : lang === 'en' ? 'language="en-IN"' : 'voice="Polly.Aditi" language="hi-IN"'}>${successMsg}</Say>
   <Pause length="1"/>
-  <Say language="ta-IN">கிசான் சேது நேரடி உழவர் சேவைக்கு நன்றி! வணக்கம்.</Say>
+  <Say voice="Polly.Valluvar" language="ta-IN">கிசான் சேது நேரடி உழவர் சேவைக்கு நன்றி! வணக்கம்.</Say>
 </Response>`);
     }
 
     // Default catch-all
     return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say language="ta-IN">கிசான் சேது நேரடி உழவர் சேவைக்கு நன்றி! வணக்கம்.</Say>
+  <Say voice="Polly.Valluvar" language="ta-IN">கிசான் சேது நேரடி உழவர் சேவைக்கு நன்றி! வணக்கம்.</Say>
 </Response>`);
 
   } catch (globalErr) {

@@ -33,12 +33,14 @@ class VoiceCallService {
   <Pause length="1"/>
   <Gather action="${baseUrl}/api/ivr/twilio-gather?step=MENU&amp;lang=ta&amp;phone=${cleanPhone.slice(-10)}" numDigits="1" method="POST" timeout="14">
     <Play>${audioUrl}</Play>
+    <Say voice="Polly.Valluvar" language="ta-IN">வணக்கம்! கிசான் சேது குரல் சேவைக்கு நல்வரவு. பயிர் விற்பனை செய்ய 1 ஐ அழுத்தவும். ஆர்டர்கள் மற்றும் வருமானத்தை அறிய 2 ஐ அழுத்தவும். பயிர் மருத்துவருக்கு 3 ஐ அழுத்தவும்.</Say>
   </Gather>
-  <Say language="en-IN">Press 1 to sell crops, 2 for mandi rates, 3 for orders.</Say>
+  <Say voice="Polly.Valluvar" language="ta-IN">வணக்கம்! கிசான் சேது குரல் சேவைக்கு நல்வரவு. பயிர் விற்பனை செய்ய 1 ஐ அழுத்தவும். ஆர்டர்கள் மற்றும் வருமானத்தை அறிய 2 ஐ அழுத்தவும். பயிர் மருத்துவருக்கு 3 ஐ அழுத்தவும்.</Say>
   <Gather action="${baseUrl}/api/ivr/twilio-gather?step=MENU&amp;lang=ta&amp;phone=${cleanPhone.slice(-10)}" numDigits="1" method="POST" timeout="10">
     <Play>${audioUrl}</Play>
+    <Say voice="Polly.Valluvar" language="ta-IN">பயிர் விற்பனை செய்ய 1, ஆர்டர்களுக்கு 2, பயிர் மருத்துவருக்கு 3 அழுத்தவும்.</Say>
   </Gather>
-  <Say language="en-IN">Thank you for calling KisanSetu.</Say>
+  <Say voice="Polly.Valluvar" language="ta-IN">கிசான் சேது சேவைக்கு நன்றி! வணக்கம்.</Say>
 </Response>`;
 
       const params = new URLSearchParams();
