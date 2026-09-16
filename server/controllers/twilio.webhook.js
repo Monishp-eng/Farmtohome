@@ -66,7 +66,7 @@ const handleTwilioGather = async (req, res) => {
     const speech = (req.body?.SpeechResult || '').trim();
     const recordingUrl = (req.body?.RecordingUrl || '').trim();
     const step = req.query?.step || 'LANG';
-    const lang = req.query?.lang || 'hi';
+    const lang = req.query?.lang || 'ta';
 
     // Extract caller/farmer phone number dynamically (supports ANY registered or unregistered caller)
     const twilioNumber = (process.env.TWILIO_PHONE_NUMBER || '8454780736').replace(/[^0-9]/g, '').slice(-10);
@@ -109,19 +109,13 @@ const handleTwilioGather = async (req, res) => {
       else if (digits === '2') chosenLang = 'hi';
       else if (digits === '3') chosenLang = 'en';
 
-      const menuPrompt = chosenLang === 'ta'
-        ? 'வணக்கம்! உழவன் நேரடி சேவைக்கு நல்வரவு. பயிர் விற்க ஒன்று அழுத்தவும். உங்கள் ஆர்டர் மற்றும் வருமானம் பார்க்க இரண்டு அழுத்தவும். பயிர் மருத்துவருக்கு மூன்று அழுத்தவும்.'
-        : chosenLang === 'en'
-        ? 'Welcome! Press 1 to sell fresh produce. Press 2 to check your orders and earnings. Press 3 for Crop Doctor.'
-        : 'नमस्ते! फसल बेचने के लिए 1 दबाएं। अपने आर्डर और कमाई जानने के लिए 2 दबाएं। फसल डॉक्टर के लिए 3 दबाएं।';
-
       return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
-  <Gather action="${baseUrl}/api/ivr/twilio-gather?step=MENU&amp;lang=${chosenLang}&amp;phone=${cleanPhone}" numDigits="1" method="POST" timeout="12">
-    <Say language="${chosenLang === 'ta' ? 'ta-IN' : chosenLang === 'en' ? 'en-IN' : 'hi-IN'}">${menuPrompt}</Say>
+  <Gather action="${baseUrl}/api/ivr/twilio-gather?step=MENU&amp;lang=${chosenLang}&amp;phone=${cleanPhone}" numDigits="1" method="POST" timeout="14">
+    <Play>${baseUrl}/audio/tamil_greeting_kavitha.wav</Play>
   </Gather>
-  <Say language="ta-IN">நீங்கள் எதுவும் அழுத்தவில்லை. மீண்டும் கேட்கவும்.</Say>
+  <Say language="en-IN">Press 1 to sell crops, 2 for orders, 3 for crop doctor.</Say>
   <Redirect method="POST">${baseUrl}/api/ivr/twilio-gather?step=LANG&amp;lang=ta&amp;phone=${cleanPhone}</Redirect>
 </Response>`);
     }
@@ -131,74 +125,46 @@ const handleTwilioGather = async (req, res) => {
 
       // Option 1: Sell Crop -> Speak details + address after beep
       if (digits === '1' || digits === '') {
-        const sellPrompt = lang === 'ta'
-          ? 'பீப் ஒலிக்குப் பிறகு தெளிவாக சொல்லுங்கள்: உங்கள் பயிரின் பெயர், எத்தனை கிலோ, ஒரு கிலோ விலை, மற்றும் உங்கள் ஊர் அல்லது முகவரி.'
-          : lang === 'en'
-          ? 'After the beep, please clearly speak: crop name, quantity in kilograms, expected price per kg, and your farm address.'
-          : 'बीप की आवाज के बाद बोलें: फसल का नाम, कितने किलो, प्रति किलो भाव, और आपका पता।';
-
         return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
-  <Say language="${lang === 'ta' ? 'ta-IN' : lang === 'en' ? 'en-IN' : 'hi-IN'}">${sellPrompt}</Say>
+  <Play>${baseUrl}/audio/tamil_sell_prompt_kavitha.wav</Play>
   <Record action="${baseUrl}/api/ivr/twilio-gather?step=PRODUCE&amp;lang=${lang}&amp;phone=${cleanPhone}" method="POST" maxLength="20" playBeep="true" timeout="6" trim="trim-silence"/>
 </Response>`);
       }
 
       // Option 2: Orders & Earnings
       else if (digits === '2') {
-        let totalOrders = 2, earnings = 1450;
-        try {
-          const farmer = db.prepare('SELECT id FROM users WHERE phone = ?').get(cleanPhone);
-          if (farmer) {
-            const stats = db.prepare('SELECT COUNT(*) as total, SUM(farmer_earnings) as earnings FROM orders WHERE farmer_id = ?').get(farmer.id);
-            if (stats?.total) totalOrders = stats.total;
-            if (stats?.earnings) earnings = stats.earnings;
-          }
-        } catch (e) {}
-
-        const msg = lang === 'ta'
-          ? `உங்கள் கணக்கில் ${totalOrders} நேரடி ஆர்டர்கள் உள்ளன. மொத்த வருமானம் ${earnings} ரூபாய். நேரடி டெலிவரி மூலம் உங்கள் வங்கிக் கணக்கில் வரவு வைக்கப்படும்.`
-          : lang === 'en'
-          ? `You have ${totalOrders} confirmed orders. Total earnings: ${earnings} rupees. Deposited to your bank account upon delivery.`
-          : `आपके खाते में कुल ${totalOrders} आर्डर हैं। कुल कमाई ${earnings} रुपये है। डायरेक्ट डिलीवरी होते ही बैंक खाते में जमा होगी।`;
-
         return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
-  <Say language="${lang === 'ta' ? 'ta-IN' : lang === 'en' ? 'en-IN' : 'hi-IN'}">${msg}</Say>
+  <Play>${baseUrl}/audio/tamil_orders_kavitha.wav</Play>
   <Pause length="1"/>
   <Gather action="${baseUrl}/api/ivr/twilio-gather?step=MENU&amp;lang=${lang}&amp;phone=${cleanPhone}" numDigits="1" timeout="8">
-    <Say language="ta-IN">முதன்மை மெனுவிற்கு செல்ல 9 அழுத்தவும், அல்லது அழைப்பை முடிக்கலாம்.</Say>
+    <Say language="en-IN">Press 9 to return to the main menu.</Say>
   </Gather>
-  <Say language="ta-IN">நன்றி! வணக்கம்.</Say>
+  <Say language="en-IN">Thank you for calling KisanSetu.</Say>
 </Response>`);
       }
 
       // Option 3: Crop Doctor
       else if (digits === '3') {
-        const docMsg = lang === 'ta'
-          ? 'பயிர் மருத்துவர் சேவைக்கு நல்வரவு. பயிரில் பூச்சி தாக்குதல் இருந்தால் 5 சதவீத வேப்ப எண்ணெய் தெளிக்கவும். காப்பர் ஆக்சிகுளோரைடு பயன்படுத்தவும்.'
-          : lang === 'en'
-          ? 'Welcome to Crop Doctor. Please describe symptoms or spray 5 percent neem oil.'
-          : 'फसल डॉक्टर में स्वागत है। कृपया अपनी फसल की बीमारी या पत्तों के लक्षण बताएं।';
-
         return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
-  <Say language="${lang === 'ta' ? 'ta-IN' : lang === 'en' ? 'en-IN' : 'hi-IN'}">${docMsg}</Say>
+  <Play>${baseUrl}/audio/tamil_doctor_kavitha.wav</Play>
   <Pause length="1"/>
   <Gather action="${baseUrl}/api/ivr/twilio-gather?step=MENU&amp;lang=${lang}&amp;phone=${cleanPhone}" numDigits="1" timeout="8">
-    <Say language="ta-IN">முதன்மை மெனுவிற்கு செல்ல 9 அழுத்தவும்.</Say>
+    <Say language="en-IN">Press 9 to return to main menu.</Say>
   </Gather>
-  <Say language="ta-IN">நன்றி! வணக்கம்.</Say>
+  <Say language="en-IN">Thank you for calling KisanSetu.</Say>
 </Response>`);
       }
 
       // Fallback
       return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say language="ta-IN">கிசான் சேது நேரடி உழவர் சேவைக்கு நன்றி! வணக்கம்.</Say>
+  <Play>${baseUrl}/audio/tamil_confirm_prompt_kavitha.wav</Play>
 </Response>`);
     }
 

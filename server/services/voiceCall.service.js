@@ -26,24 +26,19 @@ class VoiceCallService {
 
     try {
       const auth = Buffer.from(`${accountSid}:${authToken}`).toString('base64');
+      const audioUrl = `${baseUrl}/audio/tamil_greeting_kavitha.wav`;
 
       const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
-  <Gather action="${baseUrl}/api/ivr/twilio-gather?step=MENU&amp;lang=ta&amp;phone=${cleanPhone.slice(-10)}" numDigits="1" method="POST" timeout="12">
-    <Say language="ta-IN">
-      வணக்கம்! கிசான் சேது நேரடி விவசாயி உதவி மையத்திற்கு நல்வரவு.
-      உங்கள் விளைச்சலை விற்க ஒன்று அழுத்தவும்.
-      இன்றைய மண்டி விலை நிலவரம் அறிய இரண்டு அழுத்தவும்.
-      உங்கள் ஆர்டர்கள் மற்றும் வருமானம் பார்க்க மூன்று அழுத்தவும்.
-      பயிர் மருத்துவர் ஆலோசனைக்கு நான்கு அழுத்தவும்.
-    </Say>
+  <Gather action="${baseUrl}/api/ivr/twilio-gather?step=MENU&amp;lang=ta&amp;phone=${cleanPhone.slice(-10)}" numDigits="1" method="POST" timeout="14">
+    <Play>${audioUrl}</Play>
   </Gather>
-  <Say language="ta-IN">நீங்கள் எந்த பட்டனும் அழுத்தவில்லை. தயவுசெய்து ஒன்று, இரண்டு, மூன்று அல்லது நான்கு அழுத்தவும்.</Say>
+  <Say language="en-IN">Press 1 to sell crops, 2 for mandi rates, 3 for orders.</Say>
   <Gather action="${baseUrl}/api/ivr/twilio-gather?step=MENU&amp;lang=ta&amp;phone=${cleanPhone.slice(-10)}" numDigits="1" method="POST" timeout="10">
-    <Say language="ta-IN">விளைச்சல் விற்க ஒன்று அழுத்தவும். மண்டி விலைக்கு இரண்டு அழுத்தவும்.</Say>
+    <Play>${audioUrl}</Play>
   </Gather>
-  <Say language="ta-IN">நன்றி! கிசான் சேது நேரடி உழவர் சேவைக்கு நன்றி! வணக்கம்.</Say>
+  <Say language="en-IN">Thank you for calling KisanSetu.</Say>
 </Response>`;
 
       const params = new URLSearchParams();
