@@ -1127,10 +1127,29 @@ const dispatchFarmerSMS = async (phone, text) => {
 const triggerOutboundCall = async (req, res) => {
   try {
     const { phone = '7989998568' } = req.body;
-    const callRes = await voiceCallService.makeVoiceCall(phone);
+    const cleanPhone = phone.replace(/[^0-9]/g, '').slice(-10);
+    const callRes = await voiceCallService.makeVoiceCall(cleanPhone);
+
+    // Audit log entry
+    try {
+      db.prepare(`
+        INSERT INTO ivr_logs (call_sid, caller_phone, language, step, transcription, duration_seconds, outcome)
+        VALUES (?, ?, 'ta', 'OUTBOUND_DISPATCH', 'Outbound phone call initiated from portal to physical phone', 30, 'RINGING')
+      `).run(callRes.callSid || `CALL_${Date.now()}`, cleanPhone);
+    } catch (e) {}
+
+    // Also dispatch SMS alert to phone
+    if (callRes.success && !callRes.simulated) {
+      try {
+        await smsService.sendSMS(cleanPhone, `🌾 KisanSetu Voice Helpline: Dialing your number from ${process.env.TWILIO_PHONE_NUMBER || '+1 (845) 478-0736'}. Pick up to speak with Sarvam Indian Voice AI.`);
+      } catch (e) {}
+    }
+
     res.json({
       success: true,
-      message: 'Outbound Voice Phone Call placed successfully!',
+      message: callRes.simulated
+        ? 'Voice call simulated in browser'
+        : `Outbound Voice Call dispatched to +91 ${cleanPhone}! Look at your phone.`,
       data: callRes
     });
   } catch (error) {

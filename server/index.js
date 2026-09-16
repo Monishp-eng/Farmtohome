@@ -1,3 +1,5 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -38,7 +40,6 @@ app.use((req, res, next) => {
 });
 
 // Serve Sarvam AI generated audio files for Twilio <Play>
-const path = require('path');
 app.use('/audio', express.static(path.join(__dirname, 'public', 'audio')));
 
 const { apiLimiter } = require('./middleware/rateLimiter');

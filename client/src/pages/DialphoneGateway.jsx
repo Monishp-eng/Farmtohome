@@ -234,13 +234,18 @@ const DialphoneGateway = () => {
       if (res.data?.success && res.data?.data?.success) {
         setCallSid(res.data.data?.callSid || 'CALL_' + Date.now());
         setOutboundCallStatus('IN_CALL');
-        toast.success(`Incoming call dispatched to +91 ${clean}! Pick up your phone.`, { id: 'call-toast' });
+        if (res.data.data.simulated) {
+          toast.success(`Demo mode: starting in-browser audio simulation!`, { id: 'call-toast' });
+          startVirtualCall();
+        } else {
+          toast.success(`📞 Real call dispatched via Twilio to +91 ${clean}! Check your phone now.`, { id: 'call-toast' });
+        }
 
         // Simulate progression to COMPLETED after call
         setTimeout(() => {
           setOutboundCallStatus('COMPLETED');
           toast.success('Voice call session completed and transcribed!');
-        }, 12000);
+        }, 15000);
       } else {
         setOutboundCallStatus('FAILED');
         toast.error('Starting in-browser Voice AI simulator!', { id: 'call-toast' });
