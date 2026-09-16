@@ -73,6 +73,8 @@ class DatabaseWrapper {
         bank_ifsc TEXT,
         bank_verified INTEGER DEFAULT 0,
         phone_verified INTEGER DEFAULT 0,
+        fcm_token TEXT,
+        notification_language TEXT DEFAULT 'en',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
@@ -84,6 +86,8 @@ class DatabaseWrapper {
     try { this.db.run("ALTER TABLE users ADD COLUMN bank_account_number TEXT;"); } catch(e) {}
     try { this.db.run("ALTER TABLE users ADD COLUMN bank_ifsc TEXT;"); } catch(e) {}
     try { this.db.run("ALTER TABLE users ADD COLUMN bank_name TEXT DEFAULT 'State Bank of India';"); } catch(e) {}
+    try { this.db.run("ALTER TABLE users ADD COLUMN fcm_token TEXT;"); } catch(e) {}
+    try { this.db.run("ALTER TABLE users ADD COLUMN notification_language TEXT DEFAULT 'en';"); } catch(e) {}
     try { this.db.run("ALTER TABLE users ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP;"); } catch(e) {}
     try { this.db.run("ALTER TABLE orders ADD COLUMN dispute_reason TEXT;"); } catch(e) {}
     try { this.db.run("ALTER TABLE orders ADD COLUMN dispute_status TEXT DEFAULT 'none';"); } catch(e) {}

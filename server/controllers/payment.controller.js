@@ -1,6 +1,7 @@
-﻿const db = require('../config/database');
+const db = require('../config/database');
 const paymentService = require('../services/payment.service');
 const sseService = require('../services/sse.service');
+const { notifyOrderEvent } = require('../services/notification.service');
 
 /**
  * 1. Create Razorpay Payment Order for an existing KisanSetu Order
@@ -120,6 +121,31 @@ const verifyPayment = async (req, res) => {
       status: 'confirmed',
       payment_status: 'escrow'
     }, [order.buyer_id, order.farmer_id]);
+
+    // M4 Layer 2: payment-received notification after successful verification.
+    try {
+      const buyer = db.prepare(
+        'SELECT phone, name, fcm_token, notification_language FROM users WHERE id = ?'
+      ).get(order.buyer_id);
+      const farmer = db.prepare(
+        'SELECT phone, name, fcm_token, notification_language FROM users WHERE id = ?'
+      ).get(order.farmer_id);
+      [buyer, farmer].forEach(person => {
+        if (person?.phone || person?.fcm_token) {
+          notifyOrderEvent({
+            event: 'payment_received',
+            phone: person.phone,
+            pushToken: person.fcm_token,
+            language: person.notification_language || 'en',
+            orderId: order.id,
+            customerName: person.name,
+            amount: order.total_price
+          }).catch(err => console.warn('[M4 Notification] payment_received:', err.message));
+        }
+      });
+    } catch (notificationErr) {
+      console.warn('[M4 Payment Notification Error]:', notificationErr.message);
+    }
 
     res.json({
       success: true,

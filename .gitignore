@@ -44,3 +44,4 @@ server/public/audio/*.wav
 coverage/
 scratch/
 ~$*
+ai-service/data_pipeline/training_data.csv

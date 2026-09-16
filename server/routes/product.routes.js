@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct, getMyProducts, getCategorySummary } = require('../controllers/product.controller');
+const { getAllProducts, getSmartMatchProducts, getProductById, createProduct, updateProduct, deleteProduct, getMyProducts, getCategorySummary } = require('../controllers/product.controller');
 const { productValidation, validate } = require('../middleware/validation');
 const { authenticateToken, authorizeRoles } = require('../middleware/auth');
 
 router.get('/', getAllProducts);
+router.get('/smart-match', getSmartMatchProducts);
 router.get('/categories/summary', getCategorySummary);
 router.get('/farmer/my-products', authenticateToken, authorizeRoles('farmer', 'fpo'), getMyProducts);
 router.get('/:id', getProductById);

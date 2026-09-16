@@ -1,5 +1,6 @@
 const db = require('../config/database');
 const mapsService = require('../services/maps.service');
+const matchingService = require('../services/matching.service');
 
 /**
  * Calculate distance in km between two GPS coordinates (Haversine formula)
@@ -135,8 +136,9 @@ const getAllProducts = async (req, res) => {
     }
     
     if (search) {
-      query += ' AND (p.name LIKE ? OR p.description LIKE ? OR u.location LIKE ? OR u.name LIKE ?)';
-      params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
+      const searchObj = matchingService.buildSearchClause(search);
+      query += searchObj.clause;
+      params.push(...searchObj.params);
     }
 
     if (minPrice) {
@@ -184,6 +186,9 @@ const getAllProducts = async (req, res) => {
       };
     });
 
+    // Fetch farmer review ratings map
+    const farmerRatings = matchingService.getFarmerRatingsMap();
+
     // Reference user lat/lng (defaults to Bangalore/Chennai if not passed)
     const effectiveUserLat = user_lat ? parseFloat(user_lat) : 12.9716;
     const effectiveUserLng = user_lng ? parseFloat(user_lng) : 77.5946;
@@ -201,28 +206,6 @@ const getAllProducts = async (req, res) => {
       // Estimated Direct Transit Time (Farm -> Doorstep @ ~35km/h rural/suburban speed)
       const transitHours = distance_km ? Math.max(1, parseFloat((distance_km / 35).toFixed(1))) : 2;
 
-      // Smart Matching Score (Nearest + Freshest + Urgent Rescue Boost)
-      let proximityScore = 50;
-      if (distance_km !== null) {
-        proximityScore = Math.max(10, Math.min(100, Math.round(100 - (distance_km * 0.4))));
-      }
-
-      let freshnessScore = 50;
-      if (freshness.is_harvested_today) {
-        freshnessScore = 100;
-      } else if (freshness.days_remaining >= 4) {
-        freshnessScore = 85;
-      } else if (freshness.days_remaining >= 2) {
-        freshnessScore = 70;
-      } else if (freshness.is_urgent_deal) {
-        freshnessScore = 60;
-      } else if (freshness.is_expired) {
-        freshnessScore = 0;
-      }
-
-      const urgencyBoost = freshness.is_urgent_deal ? 35 : 0;
-      const smartMatchScore = Math.min(100, Math.round((proximityScore * 0.50) + (freshnessScore * 0.35) + urgencyBoost));
-
       // Look up commodity benchmark
       const prodNameClean = prod.name.toLowerCase();
       let benchmark = null;
@@ -237,6 +220,14 @@ const getAllProducts = async (req, res) => {
       const mspPrice = benchmark?.msp_per_kg || prod.msp_price || parseFloat((prod.price_per_kg * 0.9).toFixed(1));
       const supermarketPrice = parseFloat((prod.price_per_kg * 1.35).toFixed(1));
 
+      // 4-Factor Smart Matching Engine: Distance (40%), Price Competitiveness (25%), Freshness (20%), Farmer Rating (15%)
+      const fRating = farmerRatings[prod.farmer_id] !== undefined ? farmerRatings[prod.farmer_id] : 4.5;
+      const matchResult = matchingService.calculateSmartMatchScore(
+        { ...prod, freshness },
+        { userLat: effectiveUserLat, userLng: effectiveUserLng, mandiModalPrice: mandiPrice, farmerRating: fRating }
+      );
+      const smartMatchScore = matchResult.smart_match_score;
+
       // Minimum Order Quantity (MOQ) logic
       const isBulkAvailable = prod.quantity_kg >= 50;
       const bulkMoq = isBulkAvailable ? 50 : 1;
@@ -247,6 +238,8 @@ const getAllProducts = async (req, res) => {
         estimated_transit_hours: transitHours,
         freshness,
         smart_match_score: smartMatchScore,
+        smart_match_breakdown: matchResult.score_breakdown,
+        farmer_rating: fRating,
         benchmarks: {
           mandi_modal_price: mandiPrice,
           msp_price: mspPrice,
@@ -534,8 +527,14 @@ const getCategorySummary = async (req, res) => {
   }
 };
 
+const getSmartMatchProducts = async (req, res) => {
+  req.query.sortBy = 'smart_match';
+  return getAllProducts(req, res);
+};
+
 module.exports = {
   getAllProducts,
+  getSmartMatchProducts,
   getProductById,
   createProduct,
   updateProduct,

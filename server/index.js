@@ -94,6 +94,7 @@ app.use('/api/payouts', require('./routes/payout.routes'));
 app.use('/api/ivr', require('./routes/ivr.routes'));
 app.use('/api/copilot', require('./routes/copilot.routes'));
 app.use('/api/csc', require('./routes/csc.routes'));
+app.use('/api/notifications', require('./routes/notification.routes'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

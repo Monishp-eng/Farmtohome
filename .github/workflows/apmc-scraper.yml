@@ -1,0 +1,21 @@
+name: Daily APMC Scraper
+on:
+  schedule:
+    - cron: "30 1 * * *"
+  workflow_dispatch:
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install requests psycopg2-binary
+      - run: python ai-service/data_pipeline/scrapers/agmarknet_scraper.py
+        env:
+          DATA_GOV_IN_API_KEY: ${{ secrets.DATA_GOV_IN_API_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: python ai-service/data_pipeline/scrapers/weather_feed.py
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}

@@ -1,7 +1,8 @@
 const db = require('../config/database');
 const fetch = require('node-fetch');
+const matchingService = require('../services/matching.service');
 
-const AI_SERVICE_URL = 'http://127.0.0.1:5001';
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://127.0.0.1:5001';
 
 const getDemandForecast = async (req, res) => {
   try {
@@ -29,22 +30,29 @@ const getDemandForecast = async (req, res) => {
 
 const predictDemand = async (req, res) => {
   try {
-    const response = await fetch(`${AI_SERVICE_URL}/api/predict-demand`, {
+    const response = await fetch(`${AI_SERVICE_URL}/v1/predict-demand`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req.body)
     });
     
     if (!response.ok) {
+      // Fallback to legacy endpoint if /v1 fails
+      const fallback = await fetch(`${AI_SERVICE_URL}/api/predict-demand`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(req.body)
+      });
+      if (fallback.ok) {
+        return res.json(await fallback.json());
+      }
       const errText = await response.text();
       return res.status(response.status).json({ success: false, message: 'AI service error', error: errText });
     }
 
     const data = await response.json();
-    // data is an array of predictions from the Python service
     res.json(data);
   } catch (error) {
-    // If AI service is down, return a helpful message
     if (error.code === 'ECONNREFUSED') {
       return res.status(503).json({ success: false, message: 'AI service is not running. Start it with: python app.py (in ai-service/)' });
     }
@@ -54,24 +62,127 @@ const predictDemand = async (req, res) => {
 
 const optimizeRouteProxy = async (req, res) => {
   try {
-    const response = await fetch(`${AI_SERVICE_URL}/api/optimize-route`, {
+    const response = await fetch(`${AI_SERVICE_URL}/v1/route-optimizer/optimize`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req.body)
     });
     
     if (!response.ok) {
+      const fallback = await fetch(`${AI_SERVICE_URL}/api/optimize-route`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(req.body)
+      });
+      if (fallback.ok) {
+        return res.json(await fallback.json());
+      }
       const errText = await response.text();
       return res.status(response.status).json({ success: false, message: 'AI service error', error: errText });
     }
 
     const data = await response.json();
-    // Return the raw response from the Python service
     res.json(data);
   } catch (error) {
     if (error.code === 'ECONNREFUSED') {
       return res.status(503).json({ success: false, message: 'AI service is not running. Start it with: python app.py (in ai-service/)' });
     }
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+};
+
+/**
+ * Crop Doctor AI - ResNet50 Transfer Learning Leaf Disease Diagnosis
+ * Accepts image file upload (multipart) or base64 image
+ */
+const diagnoseCrop = async (req, res) => {
+  try {
+    let imageBase64 = null;
+
+    if (req.file) {
+      imageBase64 = req.file.buffer.toString('base64');
+    } else if (req.body.image) {
+      imageBase64 = req.body.image;
+    } else if (req.body.image_base64) {
+      imageBase64 = req.body.image_base64;
+    }
+
+    if (!imageBase64) {
+      return res.status(400).json({
+        success: false,
+        message: 'Leaf image is required (either as multipart file upload or base64 string in image field)'
+      });
+    }
+
+    const cropName = req.body.crop || req.body.cropName || null;
+
+    const response = await fetch(`${AI_SERVICE_URL}/v1/crop-doctor/diagnose`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: imageBase64, crop: cropName })
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      return res.status(response.status).json({ success: false, message: 'Crop Doctor AI error', error: errText });
+    }
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    if (error.code === 'ECONNREFUSED') {
+      return res.status(503).json({ success: false, message: 'AI service is not running. Start it with: python app.py (in ai-service/)' });
+    }
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+};
+
+/**
+ * Get AI Model Version Metadata & Auto-Retrain Status
+ */
+const getModelInfo = async (req, res) => {
+  try {
+    const response = await fetch(`${AI_SERVICE_URL}/v1/model-info`);
+    if (!response.ok) {
+      return res.status(response.status).json({ success: false, message: 'Unable to retrieve model info' });
+    }
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    if (error.code === 'ECONNREFUSED') {
+      return res.status(503).json({ success: false, message: 'AI service is offline' });
+    }
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+};
+
+/**
+ * Trigger Weekly Auto-Retrain on Demand
+ */
+const triggerRetrain = async (req, res) => {
+  try {
+    const response = await fetch(`${AI_SERVICE_URL}/v1/demand-forecast/retrain`, {
+      method: 'POST'
+    });
+    if (!response.ok) {
+      return res.status(response.status).json({ success: false, message: 'Retrain failed' });
+    }
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+};
+
+/**
+ * Bulk Buyer Preference Learning Engine
+ */
+const getBuyerPreferences = async (req, res) => {
+  try {
+    const { buyerId } = req.params;
+    const preferences = await matchingService.getBulkBuyerPreferences(buyerId);
+    res.json({ success: true, data: preferences });
+  } catch (error) {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 };
@@ -88,7 +199,6 @@ const getPriceRecommendation = async (req, res) => {
     let rawMsp = product.msp_price || (marketPrice && marketPrice.market_msp) || 0;
     let rawAvgMarket = (marketPrice && marketPrice.avg_market_price) ? marketPrice.avg_market_price : product.price_per_kg;
 
-    // Convert quintal rates (> 100) to per kg
     let msp_kg = rawMsp > 100 ? (rawMsp / 100) : rawMsp;
     let avg_market_kg = rawAvgMarket > 100 ? (rawAvgMarket / 100) : rawAvgMarket;
 
@@ -114,5 +224,9 @@ module.exports = {
   getDemandForecast,
   predictDemand,
   optimizeRouteProxy,
+  diagnoseCrop,
+  getModelInfo,
+  triggerRetrain,
+  getBuyerPreferences,
   getPriceRecommendation
 };

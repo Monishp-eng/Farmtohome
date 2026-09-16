@@ -21,8 +21,8 @@
 |:---|:---|:---|:---:|
 | **Layer 1** | **PostgreSQL 16 Migration, Auth Hardening, Rate Limiting** | **M1 (Backend Architect)** | ✅ **COMPLETED** |
 | **Layer 2** | **Core API Rebuild, Razorpay Escrow (Test Mode), SMS & Payouts** | **M1 (Backend Architect)** | ✅ **COMPLETED** |
-| **Layer 3** | APMC Agmarknet Training, Crop Doctor AI, Route Optimizer | M3 + M6 | 🟡 Next Up |
-| **Layer 4** | Production Frontend PWA, Offline Caching, Live Tracking | M2 + M3 | ⚪ Upcoming |
+| **Layer 3** | **APMC Agmarknet Training, Crop Doctor AI, Route Optimizer** | **M3 + M6** | ✅ **COMPLETED** |
+| **Layer 4** | Production Frontend PWA, Offline Caching, Live Tracking | M2 + M3 | 🟡 Next Up |
 | **Layer 5** | React Native Android App, Zero-Cost Cloud Deploy (Render/Vercel) | M5 + M4 | ⚪ Upcoming |
 | **Layer 6** | 10 E2E Journey Tests, Security Audit, Grafana Analytics | M6 + ALL | ⚪ Upcoming |
 

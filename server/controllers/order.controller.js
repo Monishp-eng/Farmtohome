@@ -3,6 +3,7 @@ const { dispatchFarmerSMS } = require('./ivr.controller');
 const mapsService = require('../services/maps.service');
 const sseService = require('../services/sse.service');
 const smsService = require('../services/sms.service');
+const { notifyOrderEvent } = require('../services/notification.service');
 
 const placeOrder = async (req, res) => {
   try {
@@ -125,6 +126,20 @@ const placeOrder = async (req, res) => {
       total_price,
       status: 'placed'
     }, [buyer_id, product.farmer_id]);
+
+    // M4 Layer 2: Multilingual SMS + FCM push notification
+    const buyerForNotification = db.prepare(
+      'SELECT phone, name, fcm_token, notification_language FROM users WHERE id = ?'
+    ).get(buyer_id);
+    notifyOrderEvent({
+      event: 'order_placed',
+      phone: buyerForNotification?.phone,
+      pushToken: buyerForNotification?.fcm_token,
+      language: buyerForNotification?.notification_language || 'en',
+      orderId,
+      customerName: buyerForNotification?.name,
+      amount: total_price
+    }).catch(err => console.warn('[M4 Notification] order_placed:', err.message));
 
     res.status(201).json({
       success: true,
@@ -347,6 +362,43 @@ const updateOrderStatus = async (req, res) => {
       }
     } catch (smsErr) {
       console.warn('[Order SMS Notification]:', smsErr.message);
+    }
+
+    // M4 Layer 2: reusable multilingual SMS + FCM notifications
+    try {
+      const buyerNotif = db.prepare(
+        'SELECT phone, name, fcm_token, notification_language FROM users WHERE id = ?'
+      ).get(order.buyer_id);
+      const farmerNotif = db.prepare(
+        'SELECT phone, name, fcm_token, notification_language FROM users WHERE id = ?'
+      ).get(order.farmer_id);
+
+      const notify = (event, person, extra = {}) => {
+        if (!person?.phone && !person?.fcm_token) return;
+        notifyOrderEvent({
+          event,
+          phone: person.phone,
+          pushToken: person.fcm_token,
+          language: person.notification_language || 'en',
+          orderId: order_id,
+          customerName: person.name,
+          amount: order.total_price,
+          driverName: extra.driverName
+        }).catch(err => console.warn(`[M4 Notification] ${event}:`, err.message));
+      };
+
+      if (status === 'confirmed') {
+        notify('order_confirmed', buyerNotif);
+      } else if (status === 'driver_picked' || status === 'dispatched' || status === 'in_transit') {
+        notify('out_for_delivery', buyerNotif);
+      } else if (status === 'delivered') {
+        notify('delivered', buyerNotif);
+        notify('delivered', farmerNotif);
+      } else if (status === 'settled') {
+        notify('payment_received', farmerNotif, { amount: order.farmer_earnings });
+      }
+    } catch (notificationErr) {
+      console.warn('[M4 Notification Error]:', notificationErr.message);
     }
     
     res.json({ success: true, message: `Order status updated to ${status} and mirrored to logistics`, status });
