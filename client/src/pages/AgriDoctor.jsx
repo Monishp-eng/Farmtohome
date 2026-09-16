@@ -416,35 +416,34 @@ const AgriDoctor = () => {
                       <Stethoscope size={16} /> Diagnose Leaf Photo
                     </>
                   )}
-                
-                  {/* 1-Click Demo Sample Leaves Preset Tray */}
-                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700/60">
-                    <p className="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <Sparkles size={13} className="text-amber-500" /> 1-Click Demo Presets (Test ResNet50 Without Uploading):
-                    </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {sampleLeafPresets.map((sample) => (
-                        <button
-                          key={sample.id}
-                          type="button"
-                          onClick={() => handleSelectSample(sample)}
-                          className="text-left p-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50/80 dark:bg-slate-800/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:border-emerald-400 transition-all flex items-center gap-2 group cursor-pointer"
-                        >
-                          <span className="text-xl">{sample.icon}</span>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs font-bold text-gray-900 dark:text-gray-100 truncate group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
-                              {sample.title}
-                            </p>
-                            <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
-                              {sample.desc}
-                            </p>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
                 </Button>
+
+                {/* 1-Click Demo Sample Leaves Preset Tray */}
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700/60">
+                  <p className="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <Sparkles size={13} className="text-amber-500" /> 1-Click Demo Presets (Test ResNet50 Without Uploading):
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {sampleLeafPresets.map((sample) => (
+                      <button
+                        key={sample.id}
+                        type="button"
+                        onClick={() => handleSelectSample(sample)}
+                        className="text-left p-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50/80 dark:bg-slate-800/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:border-emerald-400 transition-all flex items-center gap-2 group cursor-pointer"
+                      >
+                        <span className="text-xl">{sample.icon}</span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold text-gray-900 dark:text-gray-100 truncate group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
+                            {sample.title}
+                          </p>
+                          <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
+                            {sample.desc}
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </form>
             )}
 
@@ -474,7 +473,7 @@ const AgriDoctor = () => {
                       className="w-full border border-gray-300 rounded-xl p-2 text-xs bg-white font-medium focus:ring-2 focus:ring-primary focus:outline-none"
                     >
                       <option value="Black Clay (Regur)">Black Soil (काळी माती / கரிசல்)</option>
-                      <option value="Red Loam">Red Soil (???????)</option>
+                      <option value="Red Loam">Red Soil (செம்மண் / लाल मिट्टी)</option>
                       <option value="Alluvial Soil">Alluvial Soil</option>
                     </select>
                   </div>

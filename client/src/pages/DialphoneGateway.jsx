@@ -10,6 +10,7 @@ import {
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import Badge from '../components/ui/Badge';
+import Tabs from '../components/ui/Tabs';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 

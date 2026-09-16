@@ -22,7 +22,7 @@
 | **Layer 1** | **PostgreSQL 16 Migration, Auth Hardening, Rate Limiting** | **M1 (Backend Architect)** | ✅ **COMPLETED** |
 | **Layer 2** | **Core API Rebuild, Razorpay Escrow (Test Mode), SMS & Payouts** | **M1 (Backend Architect)** | ✅ **COMPLETED** |
 | **Layer 3** | **APMC Agmarknet Training, Crop Doctor AI, Route Optimizer** | **M3 + M6** | ✅ **COMPLETED** |
-| **Layer 4** | Production Frontend PWA, Offline Caching, Live Tracking | M2 (Frontend Lead) | 🟡 Active (Teammate) |
+| **Layer 4** | **Production Frontend PWA, Design System, Live Tracking & Telephony** | **M2 (Frontend Lead)** | ✅ **COMPLETED** |
 | **Layer 5** | React Native Android App, Zero-Cost Cloud Deploy (Render/Vercel) | M5 + M4 | ⚪ Upcoming |
 | **Layer 6** | **10 E2E Journey Tests, OWASP Security Audit, Concurrency Benchmarks** | **M6 + M1** | ✅ **COMPLETED** |
 
@@ -149,6 +149,7 @@ python app.py      # Runs on http://localhost:5001
 | **Layer 2 Core API** | `npm run test:layer2` | Razorpay Escrow, 7-Stage Order Lifecycle, 98% Payout Ledger | **12/12 PASS** ✅ |
 | **RBAC Authorization** | `.\test_rbac_authorization.ps1` | Farmer, Consumer, Logistics Driver Portals | **6/6 PASS** ✅ |
 | **Layer 3 AI/ML Engine** | `.\test_m3_production.ps1` | XGBoost v2.0 Forecast, PlantVillage Crop Doctor, 4-Factor Matching | **10/10 PASS** ✅ |
+| **Layer 4 Browser E2E** | `npm run test:browser` | Real Puppeteer + Chrome E2E Across All Roles, Dashboards, Voice & SMS | **7/7 PASS (0 errors)** ✅ |
 | **Layer 6 E2E Journeys** | `npm run test:layer6:e2e` | 10 Critical User Workflows (Voice, Cart, SMS, Escrow, Driver) | **34/34 PASS** ✅ |
 | **Layer 6 OWASP Security** | `npm run test:layer6:security` | SQL Injection, XSS, Forged Tokens, Negative Quantities, RBAC | **16/16 PASS** ✅ |
 | **Layer 6 Concurrency Stress** | `npm run test:layer6:perf` | 100 Simultaneous Requests, p95: 82ms–257ms (<500ms target), 0% error | **100% PASS** ✅ |

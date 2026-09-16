@@ -10,7 +10,8 @@
     "ai": "cd ai-service && python app.py",
     "install:all": "npm install && cd server && npm install && cd ../client && npm install && cd ../ai-service && pip install -r requirements.txt",
     "seed": "cd server && node seed/seed.js",
-    "build": "cd client && npm run build"
+    "build": "cd client && npm run build",
+    "test:browser": "node test_browser_layer4.js"
   },
   "dependencies": {
     "concurrently": "^8.2.2"
