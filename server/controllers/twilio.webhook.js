@@ -110,19 +110,18 @@ const handleTwilioGather = async (req, res) => {
       else if (digits === '3') chosenLang = 'en';
 
       const menuPrompt = chosenLang === 'ta'
-        ? 'वणक्कम! उळवन नेरडी सेवैक्कु नलवरवु। पयिर विर्क, ओण्ड्रु अळुत्तवुम। उङ्गल आर्डर मट्रुम वरुमानम पार्क, इरंडु अळुत्तवुम। पयिर मरुत्तुवरक्कु, मूण्ड्रु अळुत्तवुम।'
+        ? 'வணக்கம்! உழவன் நேரடி சேவைக்கு நல்வரவு. பயிர் விற்க ஒன்று அழுத்தவும். உங்கள் ஆர்டர் மற்றும் வருமானம் பார்க்க இரண்டு அழுத்தவும். பயிர் மருத்துவருக்கு மூன்று அழுத்தவும்.'
         : chosenLang === 'en'
         ? 'Welcome! Press 1 to sell fresh produce. Press 2 to check your orders and earnings. Press 3 for Crop Doctor.'
         : 'नमस्ते! फसल बेचने के लिए 1 दबाएं। अपने आर्डर और कमाई जानने के लिए 2 दबाएं। फसल डॉक्टर के लिए 3 दबाएं।';
-
-      const langCode = chosenLang === 'en' ? 'en-IN' : 'hi-IN';
 
       return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
   <Gather action="${baseUrl}/api/ivr/twilio-gather?step=MENU&amp;lang=${chosenLang}&amp;phone=${cleanPhone}" numDigits="1" method="POST" timeout="12">
-    <Say voice="Polly.Aditi" language="${langCode}">${menuPrompt}</Say>
+    <Say language="${chosenLang === 'ta' ? 'ta-IN' : chosenLang === 'en' ? 'en-IN' : 'hi-IN'}">${menuPrompt}</Say>
   </Gather>
+  <Say language="ta-IN">நீங்கள் எதுவும் அழுத்தவில்லை. மீண்டும் கேட்கவும்.</Say>
   <Redirect method="POST">${baseUrl}/api/ivr/twilio-gather?step=LANG&amp;lang=ta&amp;phone=${cleanPhone}</Redirect>
 </Response>`);
     }
@@ -133,17 +132,15 @@ const handleTwilioGather = async (req, res) => {
       // Option 1: Sell Crop -> Speak details + address after beep
       if (digits === '1' || digits === '') {
         const sellPrompt = lang === 'ta'
-          ? 'बीप ओलिर्कु पिरगु तेलिवाग चोल्लुङ्गल: उङ्गल पयिरिन पेयर, एत्तने किलो, ओरु किलो विले, मट्रुम उङ्गल ऊरु मुगवरि।'
+          ? 'பீப் ஒலிக்குப் பிறகு தெளிவாக சொல்லுங்கள்: உங்கள் பயிரின் பெயர், எத்தனை கிலோ, ஒரு கிலோ விலை, மற்றும் உங்கள் ஊர் அல்லது முகவரி.'
           : lang === 'en'
           ? 'After the beep, please clearly speak: crop name, quantity in kilograms, expected price per kg, and your farm address.'
           : 'बीप की आवाज के बाद बोलें: फसल का नाम, कितने किलो, प्रति किलो भाव, और आपका पता।';
 
-        const langCode = lang === 'en' ? 'en-IN' : 'hi-IN';
-
         return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
-  <Say voice="Polly.Aditi" language="${langCode}">${sellPrompt}</Say>
+  <Say language="${lang === 'ta' ? 'ta-IN' : lang === 'en' ? 'en-IN' : 'hi-IN'}">${sellPrompt}</Say>
   <Record action="${baseUrl}/api/ivr/twilio-gather?step=PRODUCE&amp;lang=${lang}&amp;phone=${cleanPhone}" method="POST" maxLength="20" playBeep="true" timeout="6" trim="trim-silence"/>
 </Response>`);
       }
@@ -161,41 +158,47 @@ const handleTwilioGather = async (req, res) => {
         } catch (e) {}
 
         const msg = lang === 'ta'
-          ? `उङ्गल कणक्किल ${totalOrders} आर्डरगल उल्लन। मोत्त वरुमानम ${earnings} रूपाय। नेरडी डेलिवरि मूलम उन्गल बैंक कणक्किल वरवु वेक्कप्पडुम। नन्ड्री!`
+          ? `உங்கள் கணக்கில் ${totalOrders} நேரடி ஆர்டர்கள் உள்ளன. மொத்த வருமானம் ${earnings} ரூபாய். நேரடி டெலிவரி மூலம் உங்கள் வங்கிக் கணக்கில் வரவு வைக்கப்படும்.`
           : lang === 'en'
-          ? `You have ${totalOrders} confirmed orders. Total earnings: ${earnings} rupees. Deposited to your bank account upon delivery. Thank you!`
-          : `आपके खाते में कुल ${totalOrders} आर्डर हैं। कुल कमाई ${earnings} रुपये है। डायरेक्ट डिलीवरी होते ही बैंक खाते में जमा होगी। धन्यवाद!`;
-
-        const langCode = lang === 'en' ? 'en-IN' : 'hi-IN';
+          ? `You have ${totalOrders} confirmed orders. Total earnings: ${earnings} rupees. Deposited to your bank account upon delivery.`
+          : `आपके खाते में कुल ${totalOrders} आर्डर हैं। कुल कमाई ${earnings} रुपये है। डायरेक्ट डिलीवरी होते ही बैंक खाते में जमा होगी।`;
 
         return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
-  <Say voice="Polly.Aditi" language="${langCode}">${msg}</Say>
+  <Say language="${lang === 'ta' ? 'ta-IN' : lang === 'en' ? 'en-IN' : 'hi-IN'}">${msg}</Say>
+  <Pause length="1"/>
+  <Gather action="${baseUrl}/api/ivr/twilio-gather?step=MENU&amp;lang=${lang}&amp;phone=${cleanPhone}" numDigits="1" timeout="8">
+    <Say language="ta-IN">முதன்மை மெனுவிற்கு செல்ல 9 அழுத்தவும், அல்லது அழைப்பை முடிக்கலாம்.</Say>
+  </Gather>
+  <Say language="ta-IN">நன்றி! வணக்கம்.</Say>
 </Response>`);
       }
 
       // Option 3: Crop Doctor
       else if (digits === '3') {
         const docMsg = lang === 'ta'
-          ? 'पयिर मरुत्तुवर सेवैक्कु नलवरवु। इलेयिल एदावदु पूच्चि इरुनदाल चोल्लुङ्गल।'
+          ? 'பயிர் மருத்துவர் சேவைக்கு நல்வரவு. பயிரில் பூச்சி தாக்குதல் இருந்தால் 5 சதவீத வேப்ப எண்ணெய் தெளிக்கவும். காப்பர் ஆக்சிகுளோரைடு பயன்படுத்தவும்.'
           : lang === 'en'
-          ? 'Welcome to Crop Doctor. Please describe the symptoms or leaf discoloration.'
+          ? 'Welcome to Crop Doctor. Please describe symptoms or spray 5 percent neem oil.'
           : 'फसल डॉक्टर में स्वागत है। कृपया अपनी फसल की बीमारी या पत्तों के लक्षण बताएं।';
-
-        const langCode = lang === 'en' ? 'en-IN' : 'hi-IN';
 
         return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
-  <Say voice="Polly.Aditi" language="${langCode}">${docMsg}</Say>
+  <Say language="${lang === 'ta' ? 'ta-IN' : lang === 'en' ? 'en-IN' : 'hi-IN'}">${docMsg}</Say>
+  <Pause length="1"/>
+  <Gather action="${baseUrl}/api/ivr/twilio-gather?step=MENU&amp;lang=${lang}&amp;phone=${cleanPhone}" numDigits="1" timeout="8">
+    <Say language="ta-IN">முதன்மை மெனுவிற்கு செல்ல 9 அழுத்தவும்.</Say>
+  </Gather>
+  <Say language="ta-IN">நன்றி! வணக்கம்.</Say>
 </Response>`);
       }
 
       // Fallback
       return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say voice="Polly.Aditi" language="hi-IN">नन्ड्री! Thank you for calling KisanSetu.</Say>
+  <Say language="ta-IN">கிசான் சேது நேரடி உழவர் சேவைக்கு நன்றி! வணக்கம்.</Say>
 </Response>`);
     }
 
@@ -218,7 +221,7 @@ const handleTwilioGather = async (req, res) => {
       }
 
       // 2. Extract crop, quantity, price, and farm address via NLP
-      let crop = 'Tomato', qty = 100, price = 25, address = 'Salem, Tamil Nadu';
+      let crop = 'தக்காளி', qty = 100, price = 25, address = 'Salem, Tamil Nadu';
       if (rawText) {
         try {
           const extracted = await nlpExtractor.extractEntities(rawText, 'PRODUCE_LISTING', lang);
@@ -235,25 +238,24 @@ const handleTwilioGather = async (req, res) => {
       const displayCrop = (lang === 'ta' && tamilCropNames[crop]) ? tamilCropNames[crop] : crop;
 
       const verifyMsg = lang === 'ta'
-        ? `नीङ्गल चोन्नदु: पयिर ${displayCrop}, अलवु ${qty} किलो, ओरु किलो विले ${price} रूपाय, मुगवरि ${address}। इदु सरि endral ओण्ड्रु अळुत्तवुम। मात्र इरंडु अळुत्तवुम।`
+        ? `நீங்கள் சொன்னது: பயிர் ${displayCrop}, அளவு ${qty} கிலோ, ஒரு கிலோ விலை ${price} ரூபாய், முகவரி ${address}. இது சரி என்றால் ஒன்று அழுத்தவும். மாற்ற இரண்டு அழுத்தவும்.`
         : lang === 'en'
         ? `You said: crop ${crop}, quantity ${qty} kilograms, price ${price} rupees per kg, farm address ${address}. If correct, press 1. To speak again, press 2.`
         : `आपने बताया: फसल ${crop}, वजन ${qty} किलो, भाव ${price} रुपये प्रति किलो, पता ${address}। सही है तो 1 दबाएं। दोबारा बोलने के लिए 2 दबाएं।`;
-
-      const langCode = lang === 'en' ? 'en-IN' : 'hi-IN';
 
       return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
   <Gather action="${baseUrl}/api/ivr/twilio-gather?step=CONFIRM&amp;lang=${lang}&amp;crop=${encodeURIComponent(crop)}&amp;qty=${qty}&amp;price=${price}&amp;address=${encodeURIComponent(address)}&amp;phone=${cleanPhone}" numDigits="1" method="POST" timeout="10">
-    <Say voice="Polly.Aditi" language="${langCode}">${verifyMsg}</Say>
+    <Say language="${lang === 'ta' ? 'ta-IN' : lang === 'en' ? 'en-IN' : 'hi-IN'}">${verifyMsg}</Say>
   </Gather>
+  <Say language="ta-IN">உறுதிப்படுத்த ஒன்று அழுத்தவும்.</Say>
 </Response>`);
     }
 
     // ─── STEP 4: FINAL CONFIRMATION & PUBLISH TO HUB ───
     else if (step === 'CONFIRM') {
-      const crop = decodeURIComponent(req.query.crop || 'Tomato');
+      const crop = decodeURIComponent(req.query.crop || 'தக்காளி');
       const qty = parseFloat(req.query.qty) || 100;
       const price = parseFloat(req.query.price) || 25;
       const address = decodeURIComponent(req.query.address || 'Salem, Tamil Nadu');
@@ -261,17 +263,15 @@ const handleTwilioGather = async (req, res) => {
       // If farmer pressed 2 -> Retry recording
       if (digits === '2') {
         const retryMsg = lang === 'ta'
-          ? "सरि। बीप ओलिर्कु पिरगु मीण्डुम चोल्लुङ्गल: पयिरिन पेयर, एत्तने किलो, ओरु किलो विले, मट्रुम उङ्गल मुगवरि।"
+          ? "சரி. பீப் ஒலிக்குப் பிறகு மீண்டும் சொல்லுங்கள்: பயிரின் பெயர், எத்தனை கிலோ, ஒரு கிலோ விலை, மற்றும் உங்கள் முகவரி."
           : lang === 'en'
           ? "Okay. Please speak again after the beep: crop name, kilograms, price per kg, and farm address."
           : "ठीक है। बीप के बाद दोबारा बोलें: फसल का नाम, कितने किलो, भाव, और आपका पता।";
 
-        const langCode = lang === 'en' ? 'en-IN' : 'hi-IN';
-
         return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
-  <Say voice="Polly.Aditi" language="${langCode}">${retryMsg}</Say>
+  <Say language="${lang === 'ta' ? 'ta-IN' : lang === 'en' ? 'en-IN' : 'hi-IN'}">${retryMsg}</Say>
   <Record action="${baseUrl}/api/ivr/twilio-gather?step=PRODUCE&amp;lang=${lang}&amp;phone=${cleanPhone}" method="POST" maxLength="15" playBeep="true" timeout="4" trim="trim-silence"/>
 </Response>`);
       }
@@ -309,7 +309,7 @@ const handleTwilioGather = async (req, res) => {
         // SMS confirmation to farmer mentioning direct nearest matching & freshness validity
         const displayCrop = (lang === 'ta' && tamilCropNames[crop]) ? tamilCropNames[crop] : crop;
         const smsText = lang === 'ta'
-          ? `உங்கள் ${displayCrop} பட்டியல் (#${listingId}) நேரடி சந்தையில் வெளியிடப்பட்டது! ${expiryDate} வரை ப்ரெஷ். அருகில் உள்ள வாடிக்கையாளர்கள் ஆர்டர் செய்யும்போது SMS வரும்.`
+          ? `🌾 உங்கள் ${displayCrop} பட்டியல் (#${listingId}) நேரடி சந்தையில் வெளியிடப்பட்டது! ${expiryDate} வரை பிரெஷ். நுகர்வோர் ஆர்டர் செய்யும்போது SMS வரும்.`
           : lang === 'en'
           ? `Your ${crop} listing (#${listingId}) is now live! Fresh & available till ${expiryDate}. Matched directly with nearest buyers.`
           : `Aapki ${crop} listing (#${listingId}) live ho gayi hai! ${expiryDate} tak fresh. Nazdeeki buyers ke order par SMS aayega.`;
@@ -322,24 +322,24 @@ const handleTwilioGather = async (req, res) => {
 
       const displayCrop = (lang === 'ta' && tamilCropNames[crop]) ? tamilCropNames[crop] : crop;
       const successMsg = lang === 'ta'
-        ? `वाळ्त्तुकल! उङ्गल ${qty} किलो ${displayCrop}, ${price} रूपाय, वेद्रिगरमाग पदिवानदु। नन्ड्री! जेय किसन!`
+        ? `வாழ்த்துகள்! உங்கள் ${qty} கிலோ ${displayCrop}, ${price} ரூபாய், வெற்றிகரமாக சந்தையில் பதிவானது. பட்டியல் எண் ${listingId}. நன்றி! ஜெய் கிசான்!`
         : lang === 'en'
         ? `Congratulations! Your ${qty} kilograms of ${crop} at ${price} rupees is confirmed. Listing ID is ${listingId}. Thank you! Jai Kisan!`
         : `बधाई हो किसान भाई! आपकी ${qty} किलो ${crop}, ${price} रुपये, लिस्ट हो गई है। लिस्टिंग नंबर ${listingId}। धन्यवाद! जय किसान!`;
 
-      const langCode = lang === 'en' ? 'en-IN' : 'hi-IN';
-
       return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
-  <Say voice="Polly.Aditi" language="${langCode}">${successMsg}</Say>
+  <Say language="${lang === 'ta' ? 'ta-IN' : lang === 'en' ? 'en-IN' : 'hi-IN'}">${successMsg}</Say>
+  <Pause length="1"/>
+  <Say language="ta-IN">கிசான் சேது நேரடி உழவர் சேவைக்கு நன்றி! வணக்கம்.</Say>
 </Response>`);
     }
 
     // Default catch-all
     return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say voice="Polly.Aditi" language="hi-IN">नन्ड्री! Thank you for calling KisanSetu.</Say>
+  <Say language="ta-IN">கிசான் சேது நேரடி உழவர் சேவைக்கு நன்றி! வணக்கம்.</Say>
 </Response>`);
 
   } catch (globalErr) {

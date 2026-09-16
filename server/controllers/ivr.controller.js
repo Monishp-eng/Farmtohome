@@ -1241,25 +1241,55 @@ const handleTwilioGather = async (req, res) => {
 
       return res.send(`
         <Response>
-          <Gather input="speech dtmf" timeout="6" speechTimeout="auto" action="${baseUrl}/api/ivr/twilio-gather?step=PRODUCE&amp;lang=${lang}" method="POST">
-            <Say voice="Polly.Aditi" language="${lang === 'ta' ? 'ta-IN' : lang === 'en' ? 'en-IN' : 'hi-IN'}">${askMsg}</Say>
+          <Gather input="speech dtmf" timeout="8" speechTimeout="auto" action="${baseUrl}/api/ivr/twilio-gather?step=PRODUCE&amp;lang=${lang}&amp;phone=${cleanPhone}" method="POST">
+            <Say language="${lang === 'ta' ? 'ta-IN' : lang === 'en' ? 'en-IN' : 'hi-IN'}">${askMsg}</Say>
           </Gather>
+          <Say language="ta-IN">நீங்கள் எதுவும் பேசவில்லை. மீண்டும் சொல்லுங்கள்.</Say>
+          <Redirect method="POST">${baseUrl}/api/ivr/twilio-gather?step=MENU&amp;lang=${lang}&amp;phone=${cleanPhone}&amp;Digits=1</Redirect>
         </Response>
       `);
     } else if (digits === '2') {
       const rateMsg = lang === 'ta' 
-        ? "இன்றைய மண்டி மாதிரி விலை: தக்காளி ₹25, வெங்காயம் ₹32, உருளைக்கிழங்கு ₹18 ஒரு கிலோவிற்கு. நன்றி!" 
-        : "आज का मुख्य मंडी मॉडल भाव: टमाटर ₹25, प्याज ₹32, आलू ₹18 प्रति किलो है। धन्यवाद!";
+        ? "இன்றைய மண்டி மாதிரி விலை நிலவரம்: தக்காளி ஒரு கிலோ 25 ரூபாய். வெங்காயம் ஒரு கிலோ 32 ரூபாய். உருளைக்கிழங்கு ஒரு கிலோ 18 ரூபாய்." 
+        : "आज का मुख्य मंडी मॉडल भाव: टमाटर ₹25, प्याज ₹32, आलू ₹18 प्रति किलो है।";
       return res.send(`
         <Response>
-          <Say voice="Polly.Aditi" language="${lang === 'ta' ? 'ta-IN' : 'hi-IN'}">${rateMsg}</Say>
+          <Say language="${lang === 'ta' ? 'ta-IN' : 'hi-IN'}">${rateMsg}</Say>
+          <Pause length="1"/>
+          <Gather action="${baseUrl}/api/ivr/twilio-gather?step=MENU&amp;lang=${lang}&amp;phone=${cleanPhone}" numDigits="1" timeout="8">
+            <Say language="ta-IN">முதன்மை மெனுவிற்கு செல்ல 9 அழுத்தவும், அல்லது அழைப்பை முடிக்கலாம்.</Say>
+          </Gather>
+          <Say language="ta-IN">நன்றி! கிசான் சேது விவசாயி சேவைக்கு நன்றி. வணக்கம்!</Say>
+        </Response>
+      `);
+    } else if (digits === '3') {
+      const msg = lang === 'ta' ? "உங்களுக்கு 2 உறுதிப்படுத்தப்பட்ட நுகர்வோர் ஆர்டர்கள் உள்ளன. மொத்த வரவு 1225 ரூபாய்." : "आपके कुल 2 आर्डर हैं। कुल कमाई ₹1225 है।";
+      return res.send(`
+        <Response>
+          <Say language="${lang === 'ta' ? 'ta-IN' : 'hi-IN'}">${msg}</Say>
+          <Pause length="1"/>
+          <Gather action="${baseUrl}/api/ivr/twilio-gather?step=MENU&amp;lang=${lang}&amp;phone=${cleanPhone}" numDigits="1" timeout="8">
+            <Say language="ta-IN">முதன்மை மெனுவிற்கு செல்ல 9 அழுத்தவும், அல்லது அழைப்பை முடிக்கலாம்.</Say>
+          </Gather>
+          <Say language="ta-IN">நன்றி! கிசான் சேது விவசாயி சேவைக்கு நன்றி. வணக்கம்!</Say>
+        </Response>
+      `);
+    } else if (digits === '4') {
+      return res.send(`
+        <Response>
+          <Say language="ta-IN">கிசான் பயிர் மருத்துவர் ஆலோசனை: பயிரில் பூச்சி மற்றும் புழு தாக்குதலை கட்டுப்படுத்த 5% வேப்ப எண்ணெய் அல்லது இயற்கை பூச்சி விரட்டி தெளிக்கவும். நோய்க்கட்டுப்பாட்டுக்கு காப்பர் ஆக்சிகுளோரைடு பயன்படுத்தலாம்.</Say>
+          <Pause length="1"/>
+          <Gather action="${baseUrl}/api/ivr/twilio-gather?step=MENU&amp;lang=${lang}&amp;phone=${cleanPhone}" numDigits="1" timeout="8">
+            <Say language="ta-IN">முதன்மை மெனுவிற்கு செல்ல 9 அழுத்தவும்.</Say>
+          </Gather>
+          <Say language="ta-IN">நன்றி! வணக்கம்.</Say>
         </Response>
       `);
     } else {
-      const msg = lang === 'ta' ? "உங்களுக்கு 2 ஆர்டர்கள் உள்ளன. உறுதிப்படுத்தப்பட்ட வருமானம் ₹1225. நன்றி!" : "आपके कुल 2 आर्डर हैं। कुल कमाई ₹1225 है। धन्यवाद!";
+      // Return to main menu
       return res.send(`
         <Response>
-          <Say voice="Polly.Aditi" language="${lang === 'ta' ? 'ta-IN' : 'hi-IN'}">${msg}</Say>
+          <Redirect method="POST">${baseUrl}/api/ivr/twilio-gather?step=LANG&amp;lang=ta&amp;phone=${cleanPhone}</Redirect>
         </Response>
       `);
     }
@@ -1267,9 +1297,9 @@ const handleTwilioGather = async (req, res) => {
 
   // 3. PRODUCE VOICE CAPTURE STEP
   else if (step === 'PRODUCE') {
-    const rawSpeech = speech || '500 kg Tomato 25 rupees';
+    const rawSpeech = speech || digits || 'தக்காளி 500 கிலோ 25 ரூபாய்';
     const extracted = await nlpExtractor.extractEntities(rawSpeech, 'PRODUCE_LISTING', lang);
-    const crop = extracted.crop || 'Tomato';
+    const crop = extracted.crop || 'தக்காளி';
     const qty = extracted.quantity || 500;
     const price = extracted.expected_price || 25;
 
@@ -1279,9 +1309,10 @@ const handleTwilioGather = async (req, res) => {
 
     return res.send(`
       <Response>
-        <Gather action="${baseUrl}/api/ivr/twilio-gather?step=CONFIRM&amp;lang=${lang}&amp;crop=${encodeURIComponent(crop)}&amp;qty=${qty}&amp;price=${price}" numDigits="1" method="POST" timeout="8">
-          <Say voice="Polly.Aditi" language="${lang === 'ta' ? 'ta-IN' : 'hi-IN'}">${verifyMsg}</Say>
+        <Gather action="${baseUrl}/api/ivr/twilio-gather?step=CONFIRM&amp;lang=${lang}&amp;crop=${encodeURIComponent(crop)}&amp;qty=${qty}&amp;price=${price}&amp;phone=${cleanPhone}" numDigits="1" method="POST" timeout="8">
+          <Say language="${lang === 'ta' ? 'ta-IN' : 'hi-IN'}">${verifyMsg}</Say>
         </Gather>
+        <Say language="ta-IN">உறுதிப்படுத்த 1 அழுத்தவும்.</Say>
       </Response>
     `);
   }
@@ -1304,27 +1335,29 @@ const handleTwilioGather = async (req, res) => {
       const listingId = insProd.lastInsertRowid;
 
       // SMS
-      smsService.sendSMS(cleanPhone, `KisanSetu Voice Alert: Aapki ${qty}kg ${crop} (@ Rs ${price}/kg) live ho gayi hai (ID #${listingId}).`).catch(() => {});
+      smsService.sendSMS(cleanPhone, `🌾 KisanSetu Voice Alert: உங்கள் ${qty}kg ${crop} (@ Rs ${price}/kg) நேரடி சந்தையில் பதிவானது (ID #${listingId}).`).catch(() => {});
 
       const successMsg = lang === 'ta'
-        ? `வாழ்த்துகள்! உங்கள் ${qty} கிலோ ${crop} சந்தையில் வெற்றிகரமாக பட்டியலிடப்பட்டது (ID #${listingId}). ஆர்டர் வந்ததும் SMS வரும். நன்றி!`
+        ? `வாழ்த்துகள்! உங்கள் ${qty} கிலோ ${crop} சந்தையில் வெற்றிகரமாக பட்டியலிடப்பட்டது (ID #${listingId}). ஆர்டர் வந்ததும் SMS வரும். கிசான் சேது பயன்படுத்தியதற்கு நன்றி!`
         : `बधाई हो! आपकी ${qty} किलो ${crop} मार्केटप्लेस पर सफलतापूर्वक लिस्ट हो गई है (ID #${listingId})। धन्यवाद!`;
 
       return res.send(`
         <Response>
-          <Say voice="Polly.Aditi" language="${lang === 'ta' ? 'ta-IN' : 'hi-IN'}">${successMsg}</Say>
+          <Say language="${lang === 'ta' ? 'ta-IN' : 'hi-IN'}">${successMsg}</Say>
+          <Pause length="1"/>
+          <Say language="ta-IN">கிசான் சேது நேரடி உழவர் சேவைக்கு நன்றி! வணக்கம்.</Say>
         </Response>
       `);
     } else {
       return res.send(`
         <Response>
-          <Say voice="Polly.Aditi" language="${lang === 'ta' ? 'ta-IN' : 'hi-IN'}">ரத்து செய்யப்பட்டது. நன்றி.</Say>
+          <Say language="${lang === 'ta' ? 'ta-IN' : 'hi-IN'}">ரத்து செய்யப்பட்டது. நன்றி.</Say>
         </Response>
       `);
     }
   }
 
-  res.send('<Response><Say>Dhanyavaad.</Say></Response>');
+  res.send('<Response><Say language="ta-IN">நன்றி! வணக்கம்.</Say></Response>');
 };
 
 /**
