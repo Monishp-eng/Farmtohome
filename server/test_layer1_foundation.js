@@ -165,7 +165,6 @@ async function runTests() {
     process.exit(1);
   } else {
     console.log('🎉 Layer 1 Foundation is 100% complete and fully verified!');
-    process.exit(0);
   }
 }
 

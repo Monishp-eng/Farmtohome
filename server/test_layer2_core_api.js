@@ -100,7 +100,7 @@ async function runTests() {
   await assert('Order Placement creates order with status "placed" and payment_status "pending"', async () => {
     // Get product
     const prodRes = await request('GET', '/api/products');
-    const product = prodRes.data.data.find(p => p.farmer_id === farmerUser.id) || prodRes.data.data[0];
+    const product = prodRes.data.data.find(p => p.farmer_id === farmerUser.id && p.quantity_kg >= 10) || prodRes.data.data.find(p => p.quantity_kg >= 10) || prodRes.data.data[0];
 
     const orderRes = await request('POST', '/api/orders', {
       product_id: product.id,
@@ -108,7 +108,7 @@ async function runTests() {
       delivery_address: 'Indiranagar 100ft Rd, Bangalore, Karnataka'
     }, { Authorization: `Bearer ${consumerToken}` });
 
-    if (orderRes.status !== 201) throw new Error(`Expected 201 Created, got ${orderRes.status}`);
+    if (orderRes.status !== 201) throw new Error(`Expected 201 Created, got ${orderRes.status}: ${JSON.stringify(orderRes.data)}`);
     const data = orderRes.data.data;
     if (data.status !== 'placed') throw new Error(`Expected status 'placed', got '${data.status}'`);
     if (data.payment_status !== 'pending') throw new Error(`Expected payment_status 'pending', got '${data.payment_status}'`);
