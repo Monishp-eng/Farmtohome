@@ -1,15 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Leaf, Shield, TrendingUp, Users, Sparkles, HeartHandshake, CheckCircle2, PhoneCall, Stethoscope, ShoppingBag, Sprout, Star, Truck } from 'lucide-react';
 import Button from '../components/common/Button';
 import ProductCard from '../components/products/ProductCard';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('all');
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleQuickDemo = async (role) => {
+    const credentials = {
+      consumer: { email: 'priya@example.com', password: 'password123', target: '/marketplace' },
+      farmer: { email: 'ramesh@example.com', password: 'password123', target: '/farmer/dashboard' },
+      logistics: { email: 'kiran@example.com', password: 'password123', target: '/logistics/dashboard' }
+    };
+    const cred = credentials[role];
+    if (cred) {
+      toast.loading(`Signing in as ${role}...`, { id: 'demo-login' });
+      const res = await login(cred.email, cred.password);
+      if (res.success) {
+        toast.success(`Logged in as ${role}!`, { id: 'demo-login' });
+        navigate(cred.target);
+      } else {
+        toast.error(`Login failed: ${res.message}`, { id: 'demo-login' });
+      }
+    }
+  };
 
   useEffect(() => {
     const fetchFeatured = async () => {
@@ -42,6 +64,52 @@ const Home = () => {
 
   return (
     <div className="flex flex-col">
+      {/* Layer 4 Live Experience Switcher Banner */}
+      <div className="bg-slate-900 text-white border-b border-emerald-500/40 px-4 py-3 shadow-lg">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="bg-emerald-500 text-slate-950 font-black px-2 py-0.5 rounded text-[10px] uppercase tracking-wider">
+              Layer 4 Production Live
+            </span>
+            <span className="font-semibold text-gray-200">
+              1-Click Role Portals & Dashboards:
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => handleQuickDemo('consumer')}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer"
+            >
+              <ShoppingBag size={13} /> 🛒 Consumer Store & Cart
+            </button>
+            <button
+              onClick={() => handleQuickDemo('farmer')}
+              className="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer"
+            >
+              <Sprout size={13} /> 🧑‍🌾 Farmer Dashboard
+            </button>
+            <button
+              onClick={() => handleQuickDemo('logistics')}
+              className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer"
+            >
+              <Truck size={13} /> 🚚 Logistics GPS Hub
+            </button>
+            <Link
+              to="/agri-doctor"
+              className="bg-teal-700 hover:bg-teal-600 text-white px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition-all shadow-sm"
+            >
+              <Stethoscope size={13} /> 🔬 AI Crop Doctor
+            </Link>
+            <Link
+              to="/dialphone"
+              className="bg-purple-700 hover:bg-purple-600 text-white px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition-all shadow-sm"
+            >
+              <PhoneCall size={13} /> 📞 2G Telephony
+            </Link>
+          </div>
+        </div>
+      </div>
+
       {/* 1. Hero Section */}
       <section className="relative bg-gradient-to-br from-emerald-950 via-primary-dark to-emerald-900 text-white overflow-hidden py-20 lg:py-28">
         <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#fff_1.5px,transparent_1.5px)] [background-size:24px_24px]"></div>
