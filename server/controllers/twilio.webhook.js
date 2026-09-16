@@ -24,31 +24,33 @@ const tamilCropNames = {
   'Sugarcane': 'கரும்பு'
 };
 
+const GITHUB_CDN = 'https://raw.githubusercontent.com/Monishp-eng/Farmtohome/main/server/public';
+
 // Pre-cached Sarvam AI Bulbul v3 Natural Native Tamil Voice Audio URLs (Kavitha)
 const SARVAM_AUDIO = {
-  greeting: '/audio/tamil_greeting_kavitha.wav',
+  greeting: `${GITHUB_CDN}/audio/tamil_greeting_kavitha.wav`,
   menu: {
-    ta: '/audio/tamil_greeting_kavitha.wav',
+    ta: `${GITHUB_CDN}/audio/tamil_greeting_kavitha.wav`,
     hi: '/audio/fe038b772acf18239d158a6c58263bd2.wav',
     en: '/audio/91a994d175ba11dec7ceea1e5b7524fb.wav'
   },
   sell_prompt: {
-    ta: '/audio/tamil_sell_prompt_kavitha.wav',
+    ta: `${GITHUB_CDN}/audio/tamil_sell_prompt_kavitha.wav`,
     hi: '/audio/c445a77f45f57588b131e4f65f735ddd.wav',
     en: '/audio/26c830b1fa149b246f7ad6e05bfe2d06.wav'
   },
   orders: {
-    ta: '/audio/tamil_orders_kavitha.wav',
+    ta: `${GITHUB_CDN}/audio/tamil_orders_kavitha.wav`,
     hi: '/audio/fe038b772acf18239d158a6c58263bd2.wav',
     en: '/audio/91a994d175ba11dec7ceea1e5b7524fb.wav'
   },
   doctor: {
-    ta: '/audio/tamil_doctor_kavitha.wav',
+    ta: `${GITHUB_CDN}/audio/tamil_doctor_kavitha.wav`,
     hi: '/audio/fe038b772acf18239d158a6c58263bd2.wav',
     en: '/audio/91a994d175ba11dec7ceea1e5b7524fb.wav'
   },
   thanks: {
-    ta: '/audio/tamil_confirm_prompt_kavitha.wav',
+    ta: `${GITHUB_CDN}/audio/tamil_confirm_prompt_kavitha.wav`,
     hi: '/audio/0e513d449840835fadeb2201ec5afa9a.wav',
     en: '/audio/91a994d175ba11dec7ceea1e5b7524fb.wav'
   }
@@ -85,7 +87,7 @@ const handleTwilioGather = async (req, res) => {
       }
     }
     const cleanPhone = rawPhone.slice(-10) || '9876543210';
-    const baseUrl = process.env.PUBLIC_URL || 'https://oral-iowa-portal-wright.trycloudflare.com';
+    const baseUrl = process.env.PUBLIC_URL || 'https://4da9c3d270a7b0.lhr.life';
 
     const getVoiceLang = (l) => l === 'ta' ? 'ta-IN' : l === 'en' ? 'en-IN' : 'hi-IN';
     const getSpeaker = (l) => l === 'ta' ? 'kavitha' : 'priya';
@@ -96,9 +98,9 @@ const handleTwilioGather = async (req, res) => {
     async function getSarvamAudio(text, langCode) {
       try {
         const url = await sarvamService.generateAudio(text, getVoiceLang(langCode), getSpeaker(langCode));
-        return url || `${baseUrl}${SARVAM_AUDIO.thanks[langCode] || SARVAM_AUDIO.thanks.ta}`;
+        return url || `${SARVAM_AUDIO.thanks[langCode] || SARVAM_AUDIO.thanks.ta}`;
       } catch (e) {
-        return `${baseUrl}${SARVAM_AUDIO.thanks[langCode] || SARVAM_AUDIO.thanks.ta}`;
+        return `${SARVAM_AUDIO.thanks[langCode] || SARVAM_AUDIO.thanks.ta}`;
       }
     }
 
@@ -113,9 +115,10 @@ const handleTwilioGather = async (req, res) => {
 <Response>
   <Pause length="1"/>
   <Gather action="${baseUrl}/api/ivr/twilio-gather?step=MENU&amp;lang=${chosenLang}&amp;phone=${cleanPhone}" numDigits="1" method="POST" timeout="14">
-    <Play>${baseUrl}/audio/tamil_greeting_kavitha.wav</Play>
+    <Play>${GITHUB_CDN}/audio/tamil_greeting_kavitha.wav</Play>
+    <Say voice="Polly.Aditi" language="en-IN">Press 1 to sell crops, 2 for orders, 3 for crop doctor.</Say>
   </Gather>
-  <Say language="en-IN">Press 1 to sell crops, 2 for orders, 3 for crop doctor.</Say>
+  <Say voice="Polly.Aditi" language="en-IN">Press 1 to sell crops, 2 for orders, 3 for crop doctor.</Say>
   <Redirect method="POST">${baseUrl}/api/ivr/twilio-gather?step=LANG&amp;lang=ta&amp;phone=${cleanPhone}</Redirect>
 </Response>`);
     }
@@ -128,7 +131,7 @@ const handleTwilioGather = async (req, res) => {
         return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
-  <Play>${baseUrl}/audio/tamil_sell_prompt_kavitha.wav</Play>
+  <Play>${GITHUB_CDN}/audio/tamil_sell_prompt_kavitha.wav</Play>
   <Record action="${baseUrl}/api/ivr/twilio-gather?step=PRODUCE&amp;lang=${lang}&amp;phone=${cleanPhone}" method="POST" maxLength="20" playBeep="true" timeout="6" trim="trim-silence"/>
 </Response>`);
       }
@@ -138,12 +141,12 @@ const handleTwilioGather = async (req, res) => {
         return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
-  <Play>${baseUrl}/audio/tamil_orders_kavitha.wav</Play>
+  <Play>${GITHUB_CDN}/audio/tamil_orders_kavitha.wav</Play>
   <Pause length="1"/>
   <Gather action="${baseUrl}/api/ivr/twilio-gather?step=MENU&amp;lang=${lang}&amp;phone=${cleanPhone}" numDigits="1" timeout="8">
-    <Say language="en-IN">Press 9 to return to the main menu.</Say>
+    <Say voice="Polly.Aditi" language="en-IN">Press 9 to return to the main menu.</Say>
   </Gather>
-  <Say language="en-IN">Thank you for calling KisanSetu.</Say>
+  <Say voice="Polly.Aditi" language="en-IN">Thank you for calling KisanSetu.</Say>
 </Response>`);
       }
 
@@ -152,19 +155,19 @@ const handleTwilioGather = async (req, res) => {
         return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
-  <Play>${baseUrl}/audio/tamil_doctor_kavitha.wav</Play>
+  <Play>${GITHUB_CDN}/audio/tamil_doctor_kavitha.wav</Play>
   <Pause length="1"/>
   <Gather action="${baseUrl}/api/ivr/twilio-gather?step=MENU&amp;lang=${lang}&amp;phone=${cleanPhone}" numDigits="1" timeout="8">
-    <Say language="en-IN">Press 9 to return to main menu.</Say>
+    <Say voice="Polly.Aditi" language="en-IN">Press 9 to return to main menu.</Say>
   </Gather>
-  <Say language="en-IN">Thank you for calling KisanSetu.</Say>
+  <Say voice="Polly.Aditi" language="en-IN">Thank you for calling KisanSetu.</Say>
 </Response>`);
       }
 
       // Fallback
       return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Play>${baseUrl}/audio/tamil_confirm_prompt_kavitha.wav</Play>
+  <Play>${GITHUB_CDN}/audio/tamil_confirm_prompt_kavitha.wav</Play>
 </Response>`);
     }
 
