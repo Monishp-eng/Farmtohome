@@ -14,7 +14,7 @@ const authLimiter = rateLimit({
 // General API limiter
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 500, // 500 requests per 15 mins per IP
+  max: process.env.NODE_ENV === 'production' ? 500 : 10000, // relaxed for automated stress testing
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -26,7 +26,7 @@ const apiLimiter = rateLimit({
 // Telephony IVR webhook limiter (Twilio calls)
 const ivrLimiter = rateLimit({
   windowMs: 5 * 60 * 1000,
-  max: 120,
+  max: process.env.NODE_ENV === 'production' ? 120 : 5000,
   standardHeaders: true,
   legacyHeaders: false,
   message: {

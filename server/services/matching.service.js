@@ -113,6 +113,10 @@ class MatchingService {
    * Get Farmer Ratings Map from Reviews Table
    */
   getFarmerRatingsMap() {
+    const now = Date.now();
+    if (this._cachedRatings && (now - (this._lastRatingsFetch || 0) < 30000)) {
+      return this._cachedRatings;
+    }
     try {
       const rows = db.prepare(`
         SELECT p.farmer_id, AVG(r.rating) as avg_rating, COUNT(r.id) as review_count
@@ -125,9 +129,11 @@ class MatchingService {
       rows.forEach(r => {
         map[r.farmer_id] = parseFloat(Number(r.avg_rating).toFixed(1));
       });
+      this._cachedRatings = map;
+      this._lastRatingsFetch = now;
       return map;
     } catch (e) {
-      return {};
+      return this._cachedRatings || {};
     }
   }
 

@@ -10,6 +10,11 @@
     "seed": "node seed/seed.js",
     "test:layer1": "node test_layer1_foundation.js",
     "test:layer2": "node test_layer2_core_api.js",
+    "test:layer6:e2e": "node test_layer6_e2e_journeys.js",
+    "test:layer6:security": "node test_layer6_security_audit.js",
+    "test:layer6:perf": "node test_layer6_performance.js",
+    "test:layer6": "node test_layer6_e2e_journeys.js && node test_layer6_security_audit.js && node test_layer6_performance.js",
+    "test:all": "node test_layer1_foundation.js && node test_layer2_core_api.js && node test_layer6_e2e_journeys.js && node test_layer6_security_audit.js && node test_layer6_performance.js",
     "seed:pg": "node seed/seed.postgres.js",
     "import:prices": "node scripts/import_market_prices.js"
   },

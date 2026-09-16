@@ -95,8 +95,57 @@ function computeFreshness(product) {
   };
 }
 
+let cachedPriceMap = null;
+let lastPriceMapFetch = 0;
+
+function getCachedPriceMap() {
+  const now = Date.now();
+  if (!cachedPriceMap || (now - lastPriceMapFetch > 30000)) {
+    try {
+      const marketPrices = db.prepare('SELECT commodity, AVG(modal_price) as avg_modal, MAX(msp) as msp FROM market_prices GROUP BY commodity').all();
+      const map = {};
+      marketPrices.forEach(m => {
+        map[m.commodity.toLowerCase()] = {
+          mandi_per_kg: m.avg_modal ? parseFloat((m.avg_modal / 100).toFixed(1)) : null,
+          msp_per_kg: m.msp ? parseFloat((m.msp / 100).toFixed(1)) : null
+        };
+      });
+      cachedPriceMap = map;
+      lastPriceMapFetch = now;
+    } catch (e) {
+      if (!cachedPriceMap) cachedPriceMap = {};
+    }
+  }
+  return cachedPriceMap;
+}
+
+const queryCache = new Map();
+const CACHE_TTL_MS = 3000; // 3-second micro-cache for high-concurrency bursts
+
+function getCachedQueryResult(key) {
+  const item = queryCache.get(key);
+  if (item && (Date.now() - item.ts < CACHE_TTL_MS)) {
+    return item.payload;
+  }
+  return null;
+}
+
+function setCachedQueryResult(key, payload) {
+  if (queryCache.size > 200) queryCache.clear();
+  queryCache.set(key, { ts: Date.now(), payload });
+}
+
+function clearProductQueryCache() {
+  queryCache.clear();
+}
+
 const getAllProducts = async (req, res) => {
   try {
+    const cacheKey = JSON.stringify(req.query || {});
+    const cachedPayload = getCachedQueryResult(cacheKey);
+    if (cachedPayload) {
+      return res.json(cachedPayload);
+    }
     const { 
       category, 
       search, 
@@ -176,15 +225,8 @@ const getAllProducts = async (req, res) => {
     // Raw initial query
     const products = db.prepare(query).all(...params);
 
-    // Fetch Mandi and MSP benchmark data for price transparency
-    const marketPrices = db.prepare('SELECT commodity, AVG(modal_price) as avg_modal, MAX(msp) as msp FROM market_prices GROUP BY commodity').all();
-    const priceMap = {};
-    marketPrices.forEach(m => {
-      priceMap[m.commodity.toLowerCase()] = {
-        mandi_per_kg: m.avg_modal ? parseFloat((m.avg_modal / 100).toFixed(1)) : null,
-        msp_per_kg: m.msp ? parseFloat((m.msp / 100).toFixed(1)) : null
-      };
-    });
+    // Fetch Mandi and MSP benchmark data for price transparency (cached)
+    const priceMap = getCachedPriceMap();
 
     // Fetch farmer review ratings map
     const farmerRatings = matchingService.getFarmerRatingsMap();
@@ -300,7 +342,7 @@ const getAllProducts = async (req, res) => {
     const totalCount = enrichedProducts.length;
     const paginated = enrichedProducts.slice(parseInt(offset), parseInt(offset) + parseInt(limit));
 
-    res.json({ 
+    const payload = { 
       success: true, 
       count: totalCount, 
       data: paginated,
@@ -309,7 +351,9 @@ const getAllProducts = async (req, res) => {
         urgent_fresh_deals_count: enrichedProducts.filter(p => p.freshness.is_urgent_deal).length,
         harvested_today_count: enrichedProducts.filter(p => p.freshness.is_harvested_today).length
       }
-    });
+    };
+    setCachedQueryResult(cacheKey, payload);
+    res.json(payload);
   } catch (error) {
     console.error('[getAllProducts Error]:', error);
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
@@ -417,7 +461,8 @@ const createProduct = async (req, res) => {
       effectiveHarvestDate, 
       effectiveExpiryDate
     );
-    
+
+    clearProductQueryCache();
     res.status(201).json({
       success: true,
       message: 'Product listing published with freshness guarantee',

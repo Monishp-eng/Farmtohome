@@ -29,7 +29,7 @@ const productValidation = [
 
 const orderValidation = [
   body('product_id').isInt().withMessage('Product ID must be an integer'),
-  body('quantity_kg').isNumeric().withMessage('Quantity must be a number')
+  body('quantity_kg').isFloat({ gt: 0 }).withMessage('Quantity must be a positive number greater than zero')
 ];
 
 const otpSendValidation = [

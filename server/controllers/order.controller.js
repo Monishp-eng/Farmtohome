@@ -18,6 +18,9 @@ const placeOrder = async (req, res) => {
 
     const buyer_id = req.user.id;
     const qty = parseFloat(quantity_kg);
+    if (isNaN(qty) || qty <= 0) {
+      return res.status(400).json({ success: false, message: 'Quantity must be a positive number greater than zero' });
+    }
 
     const product = db.prepare(`
       SELECT p.*, p.quantity_kg as available_qty, 
