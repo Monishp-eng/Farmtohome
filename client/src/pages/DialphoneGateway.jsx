@@ -631,6 +631,30 @@ const DialphoneGateway = () => {
             ))}
           </div>
 
+          {/* Quick SMS Presets */}
+          <div className="mb-4">
+            <p className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+              <Sparkles size={12} className="text-amber-500" /> Quick 1-Click SMS Presets:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: '🍅 SELL Tomato 500 25 Salem', cmd: 'SELL TOMATO 500 25 SALEM' },
+                { label: '🧅 SELL Onion 300 22 Nashik', cmd: 'SELL ONION 300 22 NASHIK' },
+                { label: '🌾 PRICE Basmati Punjab', cmd: 'PRICE BASMATI PUNJAB' },
+                { label: '📦 STATUS ORD-1042', cmd: 'STATUS ORD-1042' }
+              ].map((p, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setSmsInput(p.cmd)}
+                  className="px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold bg-gray-100 dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-gray-200 dark:border-slate-700 transition-colors"
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -639,16 +663,24 @@ const DialphoneGateway = () => {
               setSmsThread(prev => [...prev, { from: 'farmer', text, time: 'Just now' }]);
               setSmsInput('');
               setTimeout(() => {
+                let reply = '✅ KisanSetu: Command received and processed.';
+                if (text.toUpperCase().startsWith('SELL')) {
+                  reply = `✅ KisanSetu: Listing confirmed! Your produce has been published live to the digital marketplace at zero commission. Nearest drivers alerted.`;
+                } else if (text.toUpperCase().startsWith('PRICE')) {
+                  reply = `📊 APMC Mandi Benchmark: Modal ₹24/kg, Min ₹18/kg, Max ₹30/kg. Recommended KisanSetu Direct Price: ₹25/kg (+5% fair trade premium).`;
+                } else if (text.toUpperCase().startsWith('STATUS')) {
+                  reply = `🚚 Order ORD-1042 Status: In Transit with Driver Kiran. Expected doorstep delivery in 45 mins.`;
+                }
                 setSmsThread(prev => [
                   ...prev,
                   {
                     from: 'system',
-                    text: '✅ KisanSetu: Listing confirmed! 200kg Onion listed at ₹30/kg in Salem Omalur. Buyers notified.',
+                    text: reply,
                     time: 'Just now'
                   }
                 ]);
-                toast.success('SMS received and processed into live market listing!');
-              }, 1200);
+                toast.success('SMS response received from KisanSetu Gateway!');
+              }, 900);
             }}
             className="flex gap-2"
           >

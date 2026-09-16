@@ -14,6 +14,7 @@ const ProductCard = ({ product, buyerPersona = 'consumer' }) => {
   const [selectedQty, setSelectedQty] = useState(buyerPersona === 'bulk' ? (product?.bulk_details?.moq_kg || 50) : 1);
   const [isFavorite, setIsFavorite] = useState(false);
   const [imgSrc, setImgSrc] = useState(null);
+  const [showMatchModal, setShowMatchModal] = useState(false);
 
   if (!product) return null;
 
@@ -195,15 +196,98 @@ const ProductCard = ({ product, buyerPersona = 'consumer' }) => {
               <span className="text-[10px] text-gray-400 font-normal">(120+)</span>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 relative">
               {product.smart_match_score ? (
-                <span className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 text-[10px] px-2 py-0.5 rounded-md font-black border border-emerald-300 dark:border-emerald-800 flex items-center gap-0.5">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowMatchModal(prev => !prev);
+                  }}
+                  className="bg-emerald-100 dark:bg-emerald-950/60 hover:bg-emerald-200 text-emerald-900 dark:text-emerald-300 text-[10px] px-2 py-0.5 rounded-md font-black border border-emerald-300 dark:border-emerald-800 flex items-center gap-0.5 cursor-pointer active:scale-95 transition-all"
+                  title="Click to view 4-Factor AI Matching Algorithm Breakdown"
+                >
                   <Sparkles size={9} className="text-emerald-700 dark:text-emerald-400" /> {product.smart_match_score}% Match
-                </span>
+                </button>
               ) : null}
               <span className="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 text-[10px] px-2 py-0.5 rounded-md font-bold border border-slate-200 dark:border-slate-700">
                 Grade {product.quality_grade || 'A'}
               </span>
+
+              {/* 4-Factor Smart Match Radar Popup */}
+              {showMatchModal && (
+                <div 
+                  onClick={(e) => e.stopPropagation()}
+                  className="absolute right-0 top-7 z-50 w-64 bg-slate-900/95 backdrop-blur-xl border border-emerald-500/50 rounded-2xl p-3.5 shadow-2xl text-white text-[11px] animate-in fade-in zoom-in-95 duration-150"
+                >
+                  <div className="flex justify-between items-center pb-2 mb-2 border-b border-slate-700">
+                    <span className="font-extrabold text-emerald-300 flex items-center gap-1">
+                      <Sparkles size={12} /> 4-Factor AI Smart Match
+                    </span>
+                    <button 
+                      onClick={() => setShowMatchModal(false)}
+                      className="text-gray-400 hover:text-white text-xs px-1 font-bold"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div>
+                      <div className="flex justify-between text-[10px] text-gray-300 mb-0.5">
+                        <span>📍 Proximity (40% weight):</span>
+                        <span className="font-bold text-emerald-300">
+                          {product.smart_match_breakdown?.distance ?? (product.distance_km ? Math.max(40, 100 - Math.round(product.distance_km)) : 80)}/100
+                        </span>
+                      </div>
+                      <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div className="bg-emerald-400 h-full rounded-full" style={{ width: `${product.smart_match_breakdown?.distance ?? 80}%` }}></div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between text-[10px] text-gray-300 mb-0.5">
+                        <span>🏷️ Price Comp. (25% weight):</span>
+                        <span className="font-bold text-emerald-300">
+                          {product.smart_match_breakdown?.price ?? 85}/100
+                        </span>
+                      </div>
+                      <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div className="bg-amber-400 h-full rounded-full" style={{ width: `${product.smart_match_breakdown?.price ?? 85}%` }}></div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between text-[10px] text-gray-300 mb-0.5">
+                        <span>🌿 Freshness (20% weight):</span>
+                        <span className="font-bold text-emerald-300">
+                          {product.smart_match_breakdown?.freshness ?? (product.freshness?.days_remaining > 2 ? 95 : 70)}/100
+                        </span>
+                      </div>
+                      <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div className="bg-teal-400 h-full rounded-full" style={{ width: `${product.smart_match_breakdown?.freshness ?? 95}%` }}></div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between text-[10px] text-gray-300 mb-0.5">
+                        <span>⭐ Farmer Rating (15% weight):</span>
+                        <span className="font-bold text-emerald-300">
+                          {product.smart_match_breakdown?.rating ?? 90}/100
+                        </span>
+                      </div>
+                      <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div className="bg-blue-400 h-full rounded-full" style={{ width: `${product.smart_match_breakdown?.rating ?? 90}%` }}></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="mt-2.5 pt-2 border-t border-slate-800 text-[9px] text-gray-400 text-center">
+                    Computed via Layer 3 Smart Matching Service
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
