@@ -1,0 +1,50 @@
+{
+  "name": "FarmToHome - KisanSetu",
+  "short_name": "FarmToHome",
+  "description": "Direct Farm-to-Consumer Digital Agriculture Marketplace connecting rural Indian farmers with urban consumers.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#052e16",
+  "theme_color": "#166534",
+  "orientation": "portrait-primary",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["shopping", "business", "food"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Marketplace",
+      "short_name": "Marketplace",
+      "description": "Browse fresh farm produce directly from farmers",
+      "url": "/marketplace",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Mandi Rates",
+      "short_name": "Mandi Rates",
+      "description": "Live APMC commodity rates and MSP comparisons",
+      "url": "/market-prices",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Kisan Doctor",
+      "short_name": "Crop Doctor",
+      "description": "AI-powered plant leaf disease diagnostics",
+      "url": "/agri-doctor",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

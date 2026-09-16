@@ -132,6 +132,15 @@ python app.py      # Runs on http://localhost:5001
 
 ---
 
+## 🎨 Progressive Web App & Design System (Layer 4)
+- **Token-Based Design System:** Comprehensive UI tokens for colors, typography, elevations, spacing, and dark mode toggle.
+- **Offline-First PWA:** Service Worker (`sw.js`) with static asset pre-caching, IndexedDB (`idb`) offline cart persistence, and background sync.
+- **Real-Time Live Tracking:** Interactive delivery map tracking driver transit with simulated GPS breadcrumbs and SSE event updates.
+- **Professional Analytics & Exports:** Farmer dashboard CSV export via `PapaParse`, Buyer invoice PDF generation via `jsPDF` & `jspdf-autotable`.
+- **Live Mandi Ticker & Notification Center:** Real-time APMC price marquee ticker and trilingual alert bell with unread counters.
+
+---
+
 ## 🧪 Automated Testing & Launch Readiness (Layer 6 Verified)
 
 | Suite | Command | Coverage | Result |

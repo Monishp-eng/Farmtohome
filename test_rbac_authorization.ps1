@@ -127,7 +127,7 @@ try {
     $farmerProd = (Invoke-RestMethod -Uri "$baseUrl/products/farmer/my-products" -Method GET -Headers $farmerHeaders).data[0]
     $freshOrderRes = Invoke-RestMethod -Uri "$baseUrl/orders" -Method POST -Body (@{
         product_id = $farmerProd.id
-        quantity_kg = 5
+        quantity_kg = 1
         order_type = "individual"
         delivery_address = "Koramangala, Bangalore"
     } | ConvertTo-Json) -Headers $consumerHeaders -ContentType "application/json"

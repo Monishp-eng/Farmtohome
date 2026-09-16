@@ -2,16 +2,18 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Leaf, MapPin, Sparkles, Plus, Check, Star, Building2, User, Award, ShieldCheck, Zap, Heart, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext';
 
 const ProductCard = ({ product, buyerPersona = 'consumer' }) => {
   const { user } = useAuth();
+  const { addToCart } = useCart();
   const navigate = useNavigate();
   const [isAdding, setIsAdding] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
   const [selectedQty, setSelectedQty] = useState(buyerPersona === 'bulk' ? (product?.bulk_details?.moq_kg || 50) : 1);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [imgSrc, setImgSrc] = useState(null);
 
   if (!product) return null;
 
@@ -31,6 +33,7 @@ const ProductCard = ({ product, buyerPersona = 'consumer' }) => {
   };
 
   const getProductImage = () => {
+    if (imgSrc) return imgSrc;
     if (product.image_url) return product.image_url;
     const name = (product.name || '').toLowerCase();
     const productImages = {
@@ -58,35 +61,11 @@ const ProductCard = ({ product, buyerPersona = 'consumer' }) => {
       'chana dal':       'https://images.unsplash.com/photo-1613743983303-b3e89f8a2b80?w=400&h=300&fit=crop',
       'dal':             'https://images.unsplash.com/photo-1612257416648-ee7a6c5b1e5e?w=400&h=300&fit=crop',
       'milk':            'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400&h=300&fit=crop',
-      'paneer':          'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400&h=300&fit=crop',
-      'ghee':            'https://images.unsplash.com/photo-1631898039984-fd5f61fe8732?w=400&h=300&fit=crop',
-      'pepper':          'https://images.unsplash.com/photo-1599909533601-aa1e5c1c6b07?w=400&h=300&fit=crop',
-      'black pepper':    'https://images.unsplash.com/photo-1599909533601-aa1e5c1c6b07?w=400&h=300&fit=crop',
-      'cardamom':        'https://images.unsplash.com/photo-1701175498498-1677ea48a498?w=400&h=300&fit=crop',
-      'cinnamon':        'https://images.unsplash.com/photo-1587132137056-bfbf0166836e?w=400&h=300&fit=crop',
-      'cloves':          'https://images.unsplash.com/photo-1505674838245-8cf12e71a078?w=400&h=300&fit=crop',
-      'clove':           'https://images.unsplash.com/photo-1505674838245-8cf12e71a078?w=400&h=300&fit=crop',
-      'mustard':         'https://images.unsplash.com/photo-1648198786498-4480cf9322e3?w=400&h=300&fit=crop',
-      'groundnut':       'https://images.unsplash.com/photo-1567892320421-1c657571ea4a?w=400&h=300&fit=crop',
-      'peanut':          'https://images.unsplash.com/photo-1567892320421-1c657571ea4a?w=400&h=300&fit=crop',
-      'soybean':         'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=400&h=300&fit=crop',
-      'soy':             'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=400&h=300&fit=crop',
     };
-    // Match by checking if product name contains any key
-    for (const [key, url] of Object.entries(productImages)) {
-      if (name.includes(key)) return url;
+    for (const key in productImages) {
+      if (name.includes(key)) return productImages[key];
     }
-    // Fallback to category images
-    const categoryFallback = {
-      vegetables: 'https://images.unsplash.com/photo-1566385101042-1a0aa4c1c900?w=400&h=300&fit=crop',
-      fruits: 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=400&h=300&fit=crop',
-      grains: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400&h=300&fit=crop',
-      pulses: 'https://images.unsplash.com/photo-1612257416648-ee7a6c5b1e5e?w=400&h=300&fit=crop',
-      dairy: 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=400&h=300&fit=crop',
-      spices: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400&h=300&fit=crop',
-      oilseeds: 'https://images.unsplash.com/photo-1474979266404-7eaacdc948fb?w=400&h=300&fit=crop',
-    };
-    return categoryFallback[category] || categoryFallback.vegetables;
+    return 'https://images.unsplash.com/photo-1566385101042-1a0aa4c1c900?w=400&h=300&fit=crop';
   };
 
   const basePrice = Number(product.price_per_kg) || 20;
@@ -116,59 +95,29 @@ const ProductCard = ({ product, buyerPersona = 'consumer' }) => {
   const handleAddToCart = async (e) => {
     e.preventDefault();
     if (isOutOfStock) return;
-    if (!user) {
-      toast.error('Please sign in first to add items to cart');
-      navigate('/login');
-      return;
-    }
 
     setIsAdding(true);
     try {
-      await api.post('/cart', { product_id: product.id || product._id, quantity_kg: selectedQty });
+      await addToCart(product, selectedQty);
       setJustAdded(true);
-      toast.success(`Added ${selectedQty}kg of ${product.name} to cart!`);
       setTimeout(() => setJustAdded(false), 2000);
     } catch (error) {
-      const msg = error.response?.data?.message || 'Failed to add to cart';
-      toast.error(msg);
-      if (error.response?.status === 401 || (error.response?.status === 400 && msg.includes('token'))) {
-        navigate('/login');
-      }
+      toast.error('Could not add to cart');
     } finally {
       setIsAdding(false);
     }
   };
 
-  const handleQuickBuy = async (e) => {
+  const handleQuickBuy = (e) => {
     e.preventDefault();
     if (isOutOfStock) return;
-    if (!user) {
-      toast.error('Please sign in first to complete purchase');
-      navigate('/login');
-      return;
-    }
-
-    try {
-      const res = await api.post('/orders', {
-        product_id: product.id || product._id,
-        quantity_kg: selectedQty,
-        order_type: buyerPersona === 'bulk' ? 'bulk_contract' : 'individual',
-        delivery_address: user.location || 'Bangalore Direct'
-      });
-      const orderId = res.data.data?.orderId || res.data.data?.id;
-      toast.success(`Order #${orderId} Placed! Farmer notified via SMS.`);
-      navigate('/buyer/dashboard');
-    } catch (error) {
-      const msg = error.response?.data?.message || 'Quick buy failed';
-      toast.error(msg);
-      if (error.response?.status === 401 || (error.response?.status === 400 && msg.includes('token'))) {
-        navigate('/login');
-      }
-    }
+    navigate(`/product/${product.id || product._id}?directBuy=true&qty=${selectedQty}`);
   };
 
   return (
-    <div className="bg-white rounded-3xl shadow-sm hover:shadow-2xl border border-gray-200/90 overflow-hidden transition-all duration-300 flex flex-col group hover:-translate-y-1 relative">
+    <div 
+      className="group bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between relative"
+    >
       
       {/* Top Floating Badges */}
       <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
@@ -198,35 +147,38 @@ const ProductCard = ({ product, buyerPersona = 'consumer' }) => {
 
       {/* Wishlist Button */}
       <button 
+        type="button"
+        aria-label={isFavorite ? 'Remove from Wishlist' : 'Save to Wishlist'}
         onClick={(e) => { e.preventDefault(); setIsFavorite(!isFavorite); toast.success(isFavorite ? 'Removed from Wishlist' : 'Saved to Wishlist'); }}
-        className="absolute top-3 right-3 z-10 p-2 rounded-full bg-white/90 backdrop-blur-sm shadow-md hover:bg-white text-gray-400 hover:text-red-500 transition-colors"
+        className="absolute top-3 right-3 z-10 p-2 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm shadow-md hover:bg-white text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
       >
         <Heart size={15} className={isFavorite ? "fill-red-500 text-red-500" : ""} />
       </button>
 
       {/* Product Image Header */}
       <Link to={`/product/${product.id || product._id}`} className="block relative">
-        <div className="relative h-48 bg-gray-100 overflow-hidden border-b border-gray-100">
+        <div className="relative h-48 bg-gray-100 dark:bg-slate-800 overflow-hidden border-b border-gray-100 dark:border-slate-800">
           <img 
             src={getProductImage()} 
             alt={product.name} 
+            onError={() => setImgSrc('https://images.unsplash.com/photo-1566385101042-1a0aa4c1c900?w=400&h=300&fit=crop')}
             className={`w-full h-48 object-cover rounded-t-3xl transform group-hover:scale-105 transition-transform duration-500 ${isOutOfStock ? 'opacity-50 grayscale' : ''}`}
           />
           
           {/* Category Emoji Badge */}
-          <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm rounded-full w-8 h-8 flex items-center justify-center text-lg shadow-sm border border-white/50 z-20" style={{marginTop: '40px'}}>
+          <div className="absolute top-3 left-3 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-full w-8 h-8 flex items-center justify-center text-lg shadow-sm border border-white/50 dark:border-slate-700 z-20">
             {getCategoryEmoji(category)}
           </div>
 
           {/* Delivery Window & Nearest Distance Strip */}
-          <div className="absolute bottom-2 left-3 right-3 flex justify-between items-center text-[10px] text-gray-600 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-xl border border-white/60 shadow-xs z-10">
-            <span className="font-bold text-emerald-800 flex items-center gap-1">
+          <div className="absolute bottom-2 left-3 right-3 flex justify-between items-center text-[10px] text-gray-700 dark:text-gray-200 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm px-2.5 py-1 rounded-xl border border-white/60 dark:border-slate-800 shadow-xs z-10">
+            <span className="font-bold text-emerald-800 dark:text-emerald-400 flex items-center gap-1">
               <Zap size={11} className="text-amber-500 fill-amber-400" />
               Direct Transit: ~{product.estimated_transit_hours || 2}h
             </span>
-            <span className="font-black text-gray-700 flex items-center gap-0.5 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+            <span className="font-black text-gray-700 dark:text-gray-200 flex items-center gap-0.5 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
               <MapPin size={10} className="text-primary" />
-              {product.distance_km ? `${product.distance_km} km (Nearest)` : (product.farmer_location || 'Salem')}
+              {product.distance_km ? `${product.distance_km} km` : (product.farmer_location || 'Salem')}
             </span>
           </div>
         </div>
@@ -237,33 +189,33 @@ const ProductCard = ({ product, buyerPersona = 'consumer' }) => {
         <div>
           {/* Rating & Smart Match Score Row */}
           <div className="flex justify-between items-center text-xs">
-            <div className="flex items-center gap-1 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg text-amber-900 font-bold">
+            <div className="flex items-center gap-1 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-2 py-0.5 rounded-lg text-amber-900 dark:text-amber-300 font-bold">
               <Star size={12} className="text-amber-500 fill-amber-400" />
               <span>4.8</span>
-              <span className="text-[10px] text-gray-400 font-normal">(120+ orders)</span>
+              <span className="text-[10px] text-gray-400 font-normal">(120+)</span>
             </div>
 
             <div className="flex items-center gap-1">
               {product.smart_match_score ? (
-                <span className="bg-emerald-100 text-emerald-900 text-[10px] px-2 py-0.5 rounded-md font-black border border-emerald-300 flex items-center gap-0.5">
-                  <Sparkles size={9} className="text-emerald-700" /> {product.smart_match_score}% Match
+                <span className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 text-[10px] px-2 py-0.5 rounded-md font-black border border-emerald-300 dark:border-emerald-800 flex items-center gap-0.5">
+                  <Sparkles size={9} className="text-emerald-700 dark:text-emerald-400" /> {product.smart_match_score}% Match
                 </span>
               ) : null}
-              <span className="bg-slate-100 text-slate-800 text-[10px] px-2 py-0.5 rounded-md font-bold border border-slate-200">
+              <span className="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 text-[10px] px-2 py-0.5 rounded-md font-bold border border-slate-200 dark:border-slate-700">
                 Grade {product.quality_grade || 'A'}
               </span>
             </div>
           </div>
 
           {/* Product Title */}
-          <Link to={`/product/${product.id || product._id}`} className="block mt-2 group-hover:text-primary transition-colors">
-            <h3 className="font-black text-base text-gray-900 line-clamp-1 leading-snug">
+          <Link to={`/product/${product.id || product._id}`} className="block mt-2 group-hover:text-primary dark:group-hover:text-emerald-400 transition-colors">
+            <h3 className="font-black text-base text-gray-900 dark:text-gray-100 line-clamp-1 leading-snug">
               {product.name}
             </h3>
           </Link>
 
           {/* Origin & Farmer Traceability */}
-          <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-1">
             <span>🧑‍🌾 {product.farmer_name || 'Murugan'}</span>
             <span>•</span>
             <span className="text-emerald-700 font-medium">{product.farmer_location || 'Salem'}, {product.farmer_state || 'Tamil Nadu'}</span>
